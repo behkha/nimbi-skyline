@@ -1,0 +1,7 @@
+name = "skyline-proxy"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+
+[vars]
+# Identifying User-Agent sent to MET on every request (required by their terms).
+USER_AGENT = "Skyline-proxy/0.1 github.com/behkha/nimbi-skyline behzadkhanlar@gmail.com"
