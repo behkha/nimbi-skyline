@@ -1,0 +1,691 @@
+<title>Skyline Design Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one dark column of decisions; each decision is a row of 2-3 live mockups drawn with nimbi tokens (DESIGN.md), the recommended one marked. */
+:root {
+  color-scheme: dark;
+  --void: #000000;
+  --stage: #07070A;
+  --panel: #141414;
+  --rim: rgba(255,255,255,.09);
+  --line: rgba(255,255,255,.1);
+  --row: rgba(255,255,255,.055);
+  --well: rgba(255,255,255,.05);
+  --text: #FFFFFF;
+  --strong: rgba(255,255,255,.88);
+  --dim: rgba(255,255,255,.68);
+  --dim-app: rgba(255,255,255,.55);
+  --faint: rgba(255,255,255,.48);
+  --faint-app: rgba(255,255,255,.38);
+  --sky: #7FD0FF; --lavender: #B9B4FF; --blush: #F3B6EC; --glow: #B07CFF; --ink: #24163A;
+  --amber: #F2B33D; --asking: #FFD426; --done: #30D158; --working: #0A84FF;
+  --aurora: linear-gradient(90deg, var(--sky), var(--lavender) 50%, var(--blush));
+  --display: 'Fredoka', ui-rounded, system-ui, sans-serif;
+  --body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body { background: var(--void); color: var(--text); font-family: var(--body); font-size: 15px; line-height: 1.55; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 40px 80px; }
+@media (min-width: 720px) { .wrap { padding-inline: 32px; } }
+header.top { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 36px; }
+header.top canvas { flex: none; }
+.eyebrow { font-family: var(--mono); font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+h1 { font-family: var(--display); font-weight: 600; font-size: clamp(34px, 6vw, 54px); line-height: 1.02; letter-spacing: -.02em; margin: 4px 0 6px; text-wrap: balance; }
+h1 .hero { background: var(--aurora); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.lede { color: var(--dim); max-width: 64ch; margin: 0; }
+h2 { font-family: var(--display); font-weight: 500; font-size: 28px; letter-spacing: -.01em; margin: 0; text-wrap: balance; }
+h3 { font-size: 15px; font-weight: 600; margin: 0; }
+section.decision { border-top: 1px solid var(--line); padding-block: 40px 8px; }
+.dhead { display: flex; flex-direction: column; gap: 6px; margin-bottom: 22px; max-width: 72ch; }
+.dhead p { margin: 0; color: var(--dim); }
+.options { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; }
+.opt { background: var(--stage); border: 1px solid var(--line); border-radius: 18px; padding: 18px; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.opt.rec { border-color: rgba(176,124,255,.55); box-shadow: 0 0 0 1px rgba(176,124,255,.25), 0 0 40px -18px var(--glow); }
+.opt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.tag { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+.rec-chip { font-family: var(--mono); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink); background: var(--lavender); border-radius: 99px; padding: 2px 9px; }
+.pros { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: 13.5px; color: var(--dim); }
+.pros li { padding-left: 18px; position: relative; }
+.pros li::before { position: absolute; left: 0; top: 0; font-family: var(--mono); }
+.pros li.good::before { content: "+"; color: var(--done); }
+.pros li.bad::before { content: "−"; color: #FF6961; }
+.stage { background: #0A0A0C; border-radius: 12px; padding: 16px; display: flex; justify-content: center; align-items: center; overflow-x: auto; min-width: 0; }
+.stage.col { flex-direction: column; gap: 12px; }
+
+/* fake macOS menu bars */
+.menubar { width: 100%; max-width: 360px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: flex-end; gap: 14px; padding: 0 12px; font: 500 13px var(--body); }
+.menubar.dark { background: rgba(30,30,34,.92); color: #fff; }
+.menubar.light { background: rgba(236,236,240,.95); color: #111; }
+.menubar .sys { opacity: .85; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mb-item { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 5px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.mb-item.hl { background: rgba(127,127,127,.28); }
+.mb-states { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: center; font-size: 12px; color: var(--faint); width: 100%; max-width: 360px; }
+.mb-states .label { font-family: var(--mono); font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; }
+
+/* app panels (in-app type: SF, app text levels) */
+.panel { width: 318px; max-width: 100%; background: var(--panel); border: .75px solid var(--rim); border-radius: 18px; box-shadow: 0 7px 14px rgba(0,0,0,.32); padding: 13px 14px; display: flex; flex-direction: column; gap: 10px; font-family: var(--body); flex: none; }
+.p-now { display: flex; align-items: center; gap: 10px; }
+.p-now .big { font-size: 34px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1; }
+.p-now .place { font-size: 13.5px; font-weight: 600; }
+.p-now .sub { font-size: 11.5px; color: var(--dim-app); }
+.p-title { font-size: 13px; font-weight: 600; }
+.p-msg { font-size: 13px; color: rgba(255,255,255,.92); line-height: 1.45; }
+.p-sec { font-size: 11px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--faint-app); }
+.hours { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px; }
+.hour { flex: none; width: 38px; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; border-radius: 9px; background: var(--row); font-size: 10.5px; color: var(--dim-app); font-variant-numeric: tabular-nums; }
+.hour b { color: #fff; font-weight: 500; font-size: 12px; }
+.hour .mm { color: var(--sky); font-size: 9.5px; height: 12px; }
+.hour.now { background: rgba(255,255,255,.1); }
+.days { display: flex; flex-direction: column; gap: 2px; }
+.day { display: grid; grid-template-columns: 38px 18px 26px 1fr 26px; align-items: center; gap: 8px; min-height: 26px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.day .d { color: rgba(255,255,255,.88); font-weight: 500; }
+.day .lo { color: var(--dim-app); text-align: right; }
+.track { position: relative; height: 4px; border-radius: 4px; background: rgba(255,255,255,.08); }
+.track i { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: linear-gradient(90deg, rgba(255,255,255,.45), rgba(255,255,255,.85)); }
+.p-foot { display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--faint-app); border-top: .5px solid rgba(255,255,255,.07); padding-top: 8px; gap: 8px; }
+.kh { display: inline-flex; align-items: center; justify-content: center; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 5px; background: rgba(255,255,255,.11); color: rgba(255,255,255,.6); font: 600 9.5px var(--body); }
+.tabs { display: flex; gap: 6px; }
+.tabchip { display: inline-flex; align-items: center; gap: 6px; padding: 3.5px 5px 3.5px 10px; border-radius: 99px; background: rgba(255,255,255,.08); font-size: 11.5px; font-weight: 500; color: rgba(255,255,255,.88); }
+.tabchip.on { background: #fff; color: #000; }
+.tabchip.on .kh { background: rgba(0,0,0,.09); color: rgba(0,0,0,.5); }
+.chart { width: 100%; height: auto; display: block; }
+.attr { font-size: 10px; color: var(--faint-app); }
+
+/* island */
+.island-closed { position: relative; width: 336px; height: 32px; background: #000; border-radius: 0 0 14px 14px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 8px; flex: none; outline: 1px solid rgba(255,255,255,.06); }
+.island-closed .notch { position: absolute; left: 50%; transform: translateX(-50%); top: 0; width: 184px; height: 32px; background: #000; }
+.island-closed .notch::after { content: "camera housing"; position: absolute; inset: 0; display: grid; place-items: center; font: 9px var(--mono); color: rgba(255,255,255,.14); letter-spacing: .1em; text-transform: uppercase; }
+.glance { display: flex; align-items: center; gap: 8px; font: 500 12px var(--body); font-variant-numeric: tabular-nums; z-index: 1; }
+.minidots { display: flex; gap: 3px; }
+.minidots i { width: 4px; height: 4px; border-radius: 4px; background: rgba(255,255,255,.3); }
+.minidots i.cur { background: #fff; }
+.island-open { width: 580px; height: 222px; background: #000; border-radius: 0 0 30px 30px; position: relative; flex: none; outline: 1px solid rgba(255,255,255,.06); }
+.island-open .band { position: absolute; left: 0; right: 0; top: 32px; height: 150px; display: grid; grid-template-columns: 92px 1fr 132px; gap: 18px; align-items: center; padding: 0 26px; }
+.island-open .app { font: 500 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint-app); }
+.island-open .ttl { font-size: 26px; font-weight: 600; letter-spacing: -.01em; line-height: 1.1; white-space: nowrap; }
+.island-open .stl { font-size: 13px; color: var(--dim-app); margin-top: 2px; }
+.island-open .acts { display: flex; gap: 6px; margin-top: 10px; }
+.pillbtn { display: inline-flex; align-items: center; gap: 6px; padding: 4px 5px 4px 11px; border-radius: 99px; background: rgba(255,255,255,.09); font-size: 11.5px; font-weight: 500; color: rgba(255,255,255,.88); }
+.island-open .dots { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; align-items: center; }
+.island-open .dots i { width: 6px; height: 6px; border-radius: 6px; background: rgba(255,255,255,.3); }
+.island-open .dots i.cur { width: 16px; background: #fff; }
+.island-open .notchcut { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 184px; height: 32px; }
+.drows { display: flex; flex-direction: column; gap: 6px; font-size: 11.5px; color: rgba(255,255,255,.88); font-variant-numeric: tabular-nums; }
+.drows div { display: flex; gap: 7px; align-items: center; white-space: nowrap; }
+.drows span { color: var(--dim-app); }
+.limits { font-family: var(--mono); font-size: 11px; color: var(--faint); display: grid; gap: 2px; width: 100%; }
+.limits b { color: var(--dim); font-weight: 500; }
+
+/* icons */
+.icons { display: flex; align-items: flex-end; gap: 18px; flex-wrap: wrap; justify-content: center; }
+.icons figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; font: 10.5px var(--mono); color: var(--faint); }
+
+/* plan */
+.plan { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+.card { background: var(--stage); border: 1px solid var(--line); border-radius: 18px; padding: 18px; min-width: 0; }
+.card p { color: var(--dim); margin: 6px 0 0; font-size: 14px; }
+.tbl { overflow-x: auto; margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; min-width: 520px; }
+th, td { text-align: left; padding: 7px 10px 7px 0; border-bottom: 1px solid rgba(255,255,255,.07); vertical-align: top; }
+th { font: 500 10.5px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--faint); }
+td { color: var(--dim); }
+td:first-child { color: var(--text); }
+.u { font-family: var(--mono); font-size: 11.5px; border-radius: 99px; padding: 1px 8px; white-space: nowrap; }
+.u.none { background: rgba(255,255,255,.07); color: var(--dim); }
+.u.notice { background: rgba(127,208,255,.14); color: var(--sky); }
+.u.needs { background: rgba(255,212,38,.14); color: var(--asking); }
+.moodcell { display: flex; align-items: center; gap: 8px; }
+.summary { display: grid; gap: 10px; margin-top: 4px; }
+.summary div { display: grid; grid-template-columns: 150px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.07); font-size: 14px; }
+.summary b { font-weight: 500; }
+.summary span { color: var(--dim); }
+@media (max-width: 520px) { .summary div { grid-template-columns: 1fr; gap: 2px; } }
+footer { margin-top: 48px; color: var(--faint); font-size: 13px; }
+:focus-visible { outline: 2px solid var(--glow); outline-offset: 2px; }
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-sun" viewBox="0 0 16 16"><circle cx="8" cy="8" r="3.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M8 1.2v1.6M8 13.2v1.6M1.2 8h1.6M13.2 8h1.6M3.2 3.2l1.1 1.1M11.7 11.7l1.1 1.1M3.2 12.8l1.1-1.1M11.7 4.3l1.1-1.1"/></g></symbol>
+    <symbol id="i-cloud" viewBox="0 0 16 16"><path d="M4.6 12.5h7.2a2.9 2.9 0 0 0 .3-5.8 4 4 0 0 0-7.6 1A2.4 2.4 0 0 0 4.6 12.5z" fill="currentColor"/></symbol>
+    <symbol id="i-partly" viewBox="0 0 16 16"><circle cx="5.6" cy="5.6" r="2.6" fill="#F2B33D"/><path d="M5.6 13.4h6.6a2.5 2.5 0 0 0 .2-5 3.4 3.4 0 0 0-6.5.9 2.1 2.1 0 0 0-.3 4.1z" fill="currentColor"/></symbol>
+    <symbol id="i-rain" viewBox="0 0 16 16"><path d="M4.6 9.6h7.2a2.6 2.6 0 0 0 .3-5.2 3.7 3.7 0 0 0-7 .9 2.2 2.2 0 0 0-.5 4.3z" fill="currentColor"/><g stroke="#7FD0FF" stroke-width="1.4" stroke-linecap="round"><path d="M5.4 11.4l-.7 1.8M8.2 11.4l-.7 1.8M11 11.4l-.7 1.8"/></g></symbol>
+    <symbol id="i-moon" viewBox="0 0 16 16"><path d="M10.8 2.2a6 6 0 1 0 3 9.6A5 5 0 0 1 10.8 2.2z" fill="currentColor"/></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="top">
+    <canvas data-cloud="88" data-glow="1" width="88" height="88" aria-label="The nimbi cloud"></canvas>
+    <div>
+      <div class="eyebrow">nimbi · app #2 · design options</div>
+      <h1><span class="hero">Skyline</span> keeps an eye on the sky.</h1>
+      <p class="lede">A menu bar weather app in the nimbi family. Four things to decide before any view code: the menu bar glyph, the dropdown, the island page and the app icon. Each row shows the options drawn with the real tokens, cloud and limits from DESIGN.md. The sample is Oslo at 14:20 with light rain arriving around 15:00.</p>
+    </div>
+  </header>
+
+  <section class="decision" aria-labelledby="plan-h">
+    <div class="dhead">
+      <div class="eyebrow">Already decided</div>
+      <h2 id="plan-h">What the cloud means</h2>
+      <p>Skyline maps the sky onto the eleven existing moods (DESIGN.md 3.3). The first matching row wins. Urgency follows 18.5: weather is at most <code>notice</code>, except a real storm or dangerous heat.</p>
+    </div>
+    <div class="plan">
+      <div class="card">
+        <div class="tbl">
+          <table>
+            <thead><tr><th>When</th><th>Mood</th><th>Urgency</th><th>Example title</th></tr></thead>
+            <tbody>
+              <tr><td>Thunder, storm-force wind (≥ 20.8 m/s) or ≥ 35° in the next 3 h</td><td><div class="moodcell"><canvas data-cloud="22" data-mood="asking" width="22" height="22"></canvas>asking</div></td><td><span class="u needs">needsYou</span></td><td>Thunder from 16:00</td></tr>
+              <tr><td>Rain starts within the hour</td><td><div class="moodcell"><canvas data-cloud="22" data-mood="busy" width="22" height="22"></canvas>busy</div></td><td><span class="u notice">notice</span></td><td>18° · rain within the hour</td></tr>
+              <tr><td>Raining now (liveliness grows with mm/h)</td><td><div class="moodcell"><canvas data-cloud="22" data-mood="busy" width="22" height="22"></canvas>busy</div></td><td><span class="u none">none</span></td><td>14° · rain until 17:00</td></tr>
+              <tr><td>Hot (≥ 30°)</td><td><div class="moodcell"><canvas data-cloud="22" data-mood="overheated" width="22" height="22"></canvas>overheated</div></td><td><span class="u none">none</span></td><td>31° · stay in the shade</td></tr>
+              <tr><td>Rain just stopped (3 s)</td><td><div class="moodcell"><canvas data-cloud="22" data-mood="happy" width="22" height="22"></canvas>happy</div></td><td><span class="u none">none</span></td><td>Dry again</td></tr>
+              <tr><td>Sun below the horizon, nothing else</td><td><div class="moodcell"><canvas data-cloud="22" data-mood="asleep" width="22" height="22"></canvas>asleep</div></td><td><span class="u none">none</span></td><td>9° · clear night</td></tr>
+              <tr><td>No fresh data for 3 h (offline)</td><td><div class="moodcell"><canvas data-cloud="22" data-mood="lonely" width="22" height="22"></canvas>lonely</div></td><td><span class="u none">none</span></td><td>Lost the sky. Retrying.</td></tr>
+              <tr><td>Anything else, daytime</td><td><div class="moodcell"><canvas data-cloud="22" data-mood="relaxed" width="22" height="22"></canvas>relaxed</div></td><td><span class="u none">none</span></td><td>18° · partly cloudy</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Data and limits</h3>
+        <p>MET Norway Locationforecast 2.0 (compact), through a small Cloudflare Worker that caches by ~1 km cells, honours <code>Expires</code> and keeps your location away from MET. Hourly steps, so “soon” means “within the hour”. Minute-level nowcast exists only in the Nordics; it can come later.</p>
+        <p>Attribution “Weather data © MET Norway” sits in the dropdown footer and the About window.</p>
+        <h3 style="margin-top:16px">Open question for DESIGN.md</h3>
+        <p>Rain amounts need a color. The options here use <code>sky</code> #7FD0FF as a flat color (never the aurora gradient). If you agree, it gets added to 4.5 as a <code>rain</code> state token. Also 18.5 says weather is never <code>needsYou</code>; the storm row above is the one proposed exception.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1. menu bar -->
+  <section class="decision" aria-labelledby="mb-h">
+    <div class="dhead">
+      <div class="eyebrow">Decision 1 of 4</div>
+      <h2 id="mb-h">Menu bar glyph</h2>
+      <p>Template image, so macOS tints it in light and dark menu bars (11.3). Shown in three states: normal, rain within the hour, and a storm.</p>
+    </div>
+    <div class="options">
+      <div class="opt rec">
+        <div class="opt-head"><h3>A · Cloud and temperature</h3><span class="rec-chip">Recommended</span></div>
+        <div class="stage col">
+          <div class="menubar dark"><span class="mb-item"><canvas data-glyph="plain" width="18" height="18"></canvas>18°</span><span class="sys">Sat 14:20</span></div>
+          <div class="menubar light"><span class="mb-item"><canvas data-glyph="plain" data-ink="#111" width="18" height="18"></canvas>18°</span><span class="sys">Sat 14:20</span></div>
+          <div class="mb-states">
+            <span class="label">Rain soon</span><div class="menubar dark" style="justify-content:flex-start"><span class="mb-item"><canvas data-glyph="drizzle" width="18" height="18"></canvas>18°</span></div>
+            <span class="label">Storm</span><div class="menubar dark" style="justify-content:flex-start"><span class="mb-item"><canvas data-glyph="plain" data-dot="1" width="18" height="18"></canvas>18°</span></div>
+          </div>
+        </div>
+        <ul class="pros">
+          <li class="good">Exactly the 11.3 glyph, so Skyline reads as nimbi next to Relay.</li>
+          <li class="good">Drizzle under the cloud only when rain is close; the amber dot only for a storm.</li>
+          <li class="bad">The condition (sun, overcast) isn't shown until you open it.</li>
+        </ul>
+      </div>
+      <div class="opt">
+        <div class="opt-head"><h3>B · Cloud with a weather prop</h3></div>
+        <div class="stage col">
+          <div class="menubar dark"><span class="mb-item"><canvas data-glyph="sun" width="22" height="18"></canvas>18°</span><span class="sys">Sat 14:20</span></div>
+          <div class="menubar light"><span class="mb-item"><canvas data-glyph="sun" data-ink="#111" width="22" height="18"></canvas>18°</span><span class="sys">Sat 14:20</span></div>
+          <div class="mb-states">
+            <span class="label">Rain soon</span><div class="menubar dark" style="justify-content:flex-start"><span class="mb-item"><canvas data-glyph="drizzle" width="18" height="18"></canvas>18°</span></div>
+            <span class="label">Night</span><div class="menubar dark" style="justify-content:flex-start"><span class="mb-item"><canvas data-glyph="moon" width="22" height="18"></canvas>9°</span></div>
+          </div>
+        </div>
+        <ul class="pros">
+          <li class="good">Condition at a glance, like a classic weather app.</li>
+          <li class="bad">Sun and moon props crowd a 16–18 pt glyph and blur at 1x.</li>
+          <li class="bad">Bends 11.3 (“a solid cloud outline with the eyes cut out”).</li>
+        </ul>
+      </div>
+      <div class="opt">
+        <div class="opt-head"><h3>C · Temperature only, cloud on duty</h3></div>
+        <div class="stage col">
+          <div class="menubar dark"><span class="mb-item">18°</span><span class="sys">Sat 14:20</span></div>
+          <div class="menubar light"><span class="mb-item">18°</span><span class="sys">Sat 14:20</span></div>
+          <div class="mb-states">
+            <span class="label">Rain soon</span><div class="menubar dark" style="justify-content:flex-start"><span class="mb-item"><canvas data-glyph="drizzle" width="18" height="18"></canvas>18°</span></div>
+            <span class="label">Storm</span><div class="menubar dark" style="justify-content:flex-start"><span class="mb-item"><canvas data-glyph="plain" data-dot="1" width="18" height="18"></canvas>18°</span></div>
+          </div>
+        </div>
+        <ul class="pros">
+          <li class="good">Smallest footprint in a crowded menu bar.</li>
+          <li class="good">When the cloud appears, it means something.</li>
+          <li class="bad">“18°” alone isn't recognisably Skyline; the width jumps when the cloud comes and goes.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. dropdown -->
+  <section class="decision" aria-labelledby="dd-h">
+    <div class="dhead">
+      <div class="eyebrow">Decision 2 of 4</div>
+      <h2 id="dd-h">The dropdown</h2>
+      <p>Now, the next hours and five days, in a solid panel (list width 318, radius 18, rim). Keys: <span class="kh">R</span> refresh, <span class="kh">L</span> change place, <span class="kh">,</span> settings.</p>
+    </div>
+    <div class="options">
+      <div class="opt">
+        <div class="opt-head"><h3>A · Strip and rows</h3></div>
+        <div class="stage">
+          <div class="panel">
+            <div class="p-now">
+              <canvas data-cloud="40" data-mood="busy" width="40" height="40"></canvas>
+              <div style="flex:1;min-width:0"><div class="place">Oslo</div><div class="sub">Partly cloudy · feels 16°</div></div>
+              <div class="big">18°</div>
+            </div>
+            <div class="p-title">Rain within the hour, about 15:00.</div>
+            <div class="p-sec">Next hours</div>
+            <div class="hours" data-hours="12"></div>
+            <div class="p-sec">5 days</div>
+            <div class="days" data-days></div>
+            <div class="p-foot"><span>Weather data © MET Norway</span><span>Updated 14:12</span></div>
+          </div>
+        </div>
+        <ul class="pros">
+          <li class="good">Familiar; every number is where people look for it.</li>
+          <li class="good">Range bars make the week readable in one pass.</li>
+          <li class="bad">Looks like every weather widget; the hour chips are busy at 318 pt.</li>
+        </ul>
+      </div>
+      <div class="opt rec">
+        <div class="opt-head"><h3>B · The skyline chart</h3><span class="rec-chip">Recommended</span></div>
+        <div class="stage">
+          <div class="panel">
+            <div class="p-now">
+              <canvas data-cloud="40" data-mood="busy" width="40" height="40"></canvas>
+              <div style="flex:1;min-width:0"><div class="place">Oslo</div><div class="sub">Rain within the hour</div></div>
+              <div class="big">18°</div>
+            </div>
+            <svg class="chart" data-chart viewBox="0 0 290 112" role="img" aria-label="Next 24 hours: temperature falls from 18 to 10 degrees overnight; rain from 15:00 to 19:00, heaviest 1.2 mm at 16:00"></svg>
+            <div class="p-sec">5 days</div>
+            <div class="days" data-days></div>
+            <div class="p-foot"><span>Weather data © MET Norway</span><span>Updated 14:12</span></div>
+          </div>
+        </div>
+        <ul class="pros">
+          <li class="good">Rain bars rise like a city skyline under the temperature line: the name, made literal.</li>
+          <li class="good">“When does it start and how hard” is one glance, not twelve chips.</li>
+          <li class="bad">A chart needs a VoiceOver summary and careful labels to stay accessible.</li>
+        </ul>
+      </div>
+      <div class="opt">
+        <div class="opt-head"><h3>C · Sentence first, tabs below</h3></div>
+        <div class="stage">
+          <div class="panel">
+            <div class="p-now">
+              <canvas data-cloud="40" data-mood="busy" width="40" height="40"></canvas>
+              <div style="flex:1;min-width:0"><div class="place">Oslo · 18°</div><div class="sub">Updated 14:12</div></div>
+            </div>
+            <div class="p-msg">Dry for now. Light rain from about 15:00 until 19:00, then a clear, cool night down to 10°. Tomorrow is the better day.</div>
+            <div class="tabs"><span class="tabchip on">Hours <span class="kh">H</span></span><span class="tabchip">Days <span class="kh">D</span></span></div>
+            <div class="days" data-hourrows></div>
+            <div class="p-foot"><span>Weather data © MET Norway</span><span><span class="kh">R</span> refresh</span></div>
+          </div>
+        </div>
+        <ul class="pros">
+          <li class="good">Most nimbi: a sharp friend telling you the weather.</li>
+          <li class="good">Keyboard-first tabs keep the panel short.</li>
+          <li class="bad">Generated sentences must stay true for every forecast; a tab hides half the data.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. island -->
+  <section class="decision" aria-labelledby="is-h">
+    <div class="dhead">
+      <div class="eyebrow">Decision 3 of 4</div>
+      <h2 id="is-h">The island page</h2>
+      <p>For phase 2 of 18.3: Skyline publishes data, the island host draws it. The closed island and the page header are the same in every option; the options differ in the detail block (18.4: <code>bars</code>, <code>rows</code> or <code>ring</code>). Until then Relay owns the notch and Skyline stays in the menu bar.</p>
+    </div>
+    <div class="stage col" style="margin-bottom:18px">
+      <div class="island-closed">
+        <canvas data-cloud="24" data-mood="busy" data-prop="drops" width="30" height="30"></canvas>
+        <div class="notch"></div>
+        <div class="glance"><span>☂︎ 18°</span><div class="minidots"><i></i><i class="cur"></i></div></div>
+      </div>
+      <div class="limits">
+        <div><b>glance</b> “☂︎ 18°” · 5 of 14 chars</div>
+        <div><b>title</b> “18° · rain within the hour” · 26 of 28</div>
+        <div><b>subtitle</b> “Light rain 15:00–19:00, 2.7 mm in all” · 37 of 60</div>
+        <div><b>actions</b> Forecast ↩ · Place L (not primary: urgency is notice)</div>
+        <div><b>urgency</b> notice → comes forward only when no app needs you, no toast</div>
+      </div>
+    </div>
+    <div class="options">
+      <div class="opt rec">
+        <div class="opt-head"><h3>A · bars: rain, next 12 h</h3><span class="rec-chip">Recommended</span></div>
+        <div class="stage"><div class="island-open" data-island="bars"></div></div>
+        <ul class="pros">
+          <li class="good">Answers “when and how hard” without opening the app.</li>
+          <li class="good">Same picture as the dropdown chart, so the two feel related.</li>
+          <li class="bad">On a dry day the bars are empty; we'd send temperature bars instead.</li>
+        </ul>
+      </div>
+      <div class="opt">
+        <div class="opt-head"><h3>B · rows: three moments</h3></div>
+        <div class="stage"><div class="island-open" data-island="rows"></div></div>
+        <ul class="pros">
+          <li class="good">Plain words, works every day of the year.</li>
+          <li class="bad">Three lines of text at 132 pt is tight; numbers truncate in other languages.</li>
+        </ul>
+      </div>
+      <div class="opt">
+        <div class="opt-head"><h3>C · ring: daylight left</h3></div>
+        <div class="stage"><div class="island-open" data-island="ring"></div></div>
+        <ul class="pros">
+          <li class="good">Calm and pretty; unique to Skyline.</li>
+          <li class="bad">Daylight isn't what people open a weather app for.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. icon -->
+  <section class="decision" aria-labelledby="ic-h">
+    <div class="dhead">
+      <div class="eyebrow">Decision 4 of 4</div>
+      <h2 id="ic-h">App icon</h2>
+      <p>The family tile from 11.2: the same aurora cloud on the dark squircle, eyes looking right, exactly one prop. Shown at 256 and at 32 px, where props usually fail.</p>
+    </div>
+    <div class="options">
+      <div class="opt rec">
+        <div class="opt-head"><h3>A · Raindrops</h3><span class="rec-chip">Recommended</span></div>
+        <div class="stage"><div class="icons"><figure><canvas data-icon="drops" data-px="200" width="200" height="200"></canvas>256</figure><figure><canvas data-icon="drops" data-px="32" width="32" height="32"></canvas>32</figure></div></div>
+        <ul class="pros">
+          <li class="good">Says the app's one job, “rain is coming”, and matches the island prop.</li>
+          <li class="good">Three sky-blue drops survive at 32 px.</li>
+          <li class="bad">A crying-cloud reading is possible; the drops sit low-left, away from the eyes, to avoid it.</li>
+        </ul>
+      </div>
+      <div class="opt">
+        <div class="opt-head"><h3>B · Sun behind</h3></div>
+        <div class="stage"><div class="icons"><figure><canvas data-icon="sun" data-px="200" width="200" height="200"></canvas>256</figure><figure><canvas data-icon="sun" data-px="32" width="32" height="32"></canvas>32</figure></div></div>
+        <ul class="pros">
+          <li class="good">Warm, unmistakably weather.</li>
+          <li class="bad">The classic “partly cloudy” icon every weather app has.</li>
+          <li class="bad">Amber reads as “waiting on you” in nimbi's state colors.</li>
+        </ul>
+      </div>
+      <div class="opt">
+        <div class="opt-head"><h3>C · A skyline below</h3></div>
+        <div class="stage"><div class="icons"><figure><canvas data-icon="city" data-px="200" width="200" height="200"></canvas>256</figure><figure><canvas data-icon="city" data-px="32" width="32" height="32"></canvas>32</figure></div></div>
+        <ul class="pros">
+          <li class="good">The name, drawn; nobody else's icon looks like this.</li>
+          <li class="bad">Says “city” before it says “weather”; the rooftops turn to mush at 32 px.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="decision" aria-labelledby="sum-h">
+    <div class="dhead">
+      <div class="eyebrow">Chosen · 10 Oct 2026</div>
+      <h2 id="sum-h">The marked options, all four</h2>
+    </div>
+    <div class="summary">
+      <div><b>Menu bar</b><span>Cloud and temperature. Drizzle marks when rain is within the hour; amber dot only for a storm.</span></div>
+      <div><b>Dropdown</b><span>Now header, the skyline chart for 24 h, five day rows, attribution footer.</span></div>
+      <div><b>Island page</b><span>Rain bars for the next 12 h, temperature bars on dry days. Urgency <code>notice</code> at most, except a storm.</span></div>
+      <div><b>App icon</b><span>The cloud with three sky-blue raindrops.</span></div>
+    </div>
+  </section>
+
+  <footer>Skyline by nimbi · mockups drawn from DESIGN.md tokens and the CloudShape formula · sample weather is illustrative, not live.</footer>
+</div>
+
+<script>
+(() => {
+  const DPR = Math.min(3, window.devicePixelRatio || 1);
+  const MOODS = {
+    relaxed: { glow: '#B07CFF', ga: .55, tint: null, eyes: 'open' },
+    busy: { glow: '#6FC8FF', ga: .6, tint: null, eyes: 'open' },
+    asking: { glow: '#FFD426', ga: .8, tint: ['#FFE27A', .12], eyes: 'wide', mark: '!' },
+    overheated: { glow: '#FF7A3D', ga: .85, tint: ['#FF8A4D', .35], eyes: 'sleepy' },
+    happy: { glow: '#FF9BE0', ga: .8, tint: ['#FFC2EC', .15], eyes: 'happy' },
+    asleep: { glow: '#8E86C9', ga: .35, tint: ['#8A8FB8', .3], eyes: 'closed' },
+    lonely: { glow: '#7D8BC4', ga: .35, tint: ['#7F8FB8', .32], eyes: 'sad' },
+  };
+
+  function outline(ctx, cx, cy, r) {
+    ctx.beginPath();
+    for (let i = 0; i <= 240; i++) {
+      const t = i / 240 * Math.PI * 2;
+      const lobe = Math.pow(Math.abs(Math.cos(4 * t + .2)), .7);
+      const k = .93 + .043 * (2 * lobe - 1) + .012 * Math.sin(2 * t + 1);
+      const x = cx + r * k * Math.cos(t), y = cy + r * k * Math.sin(t);
+      i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+    }
+    ctx.closePath();
+  }
+  function rgba(hex, a) {
+    const n = parseInt(hex.slice(1), 16);
+    return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`;
+  }
+
+  // The full cloud: glow, skin, rim, face. (x, y) is the top-left of a size×size box.
+  function cloud(ctx, x, y, s, moodName = 'relaxed', glow = true) {
+    const m = MOODS[moodName] || MOODS.relaxed;
+    const cx = x + s / 2, cy = y + s / 2, r = s / 2;
+    if (glow) {
+      ctx.save(); ctx.filter = `blur(${Math.max(1, s * .12)}px)`;
+      outline(ctx, cx, cy, r * 1.1); ctx.fillStyle = rgba(m.glow, m.ga); ctx.fill(); ctx.restore();
+    }
+    ctx.save(); outline(ctx, cx, cy, r); ctx.clip();
+    const g = ctx.createLinearGradient(x, y + s, x + s, y);
+    g.addColorStop(0, '#7FD0FF'); g.addColorStop(.5, '#B9B4FF'); g.addColorStop(1, '#F3B6EC');
+    ctx.fillStyle = g; ctx.fillRect(x, y, s, s);
+    const rad = (px, py, rr, col, a) => {
+      const gr = ctx.createRadialGradient(x + px * s, y + py * s, 0, x + px * s, y + py * s, rr * s);
+      gr.addColorStop(0, rgba(col, a)); gr.addColorStop(1, rgba(col, 0));
+      ctx.fillStyle = gr; ctx.fillRect(x, y, s, s);
+    };
+    rad(.12, .5, .55, '#56BFFF', .9);
+    rad(.85, .12, .5, '#F6A9E4', .85);
+    const core = ctx.createRadialGradient(x + .44 * s, y + .62 * s, 0, x + .44 * s, y + .62 * s, .36 * s);
+    core.addColorStop(0, 'rgba(255,255,255,1)'); core.addColorStop(.5, 'rgba(255,255,255,.55)'); core.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = core; ctx.fillRect(x, y, s, s);
+    if (m.tint) { ctx.fillStyle = rgba(m.tint[0], m.tint[1]); ctx.fillRect(x, y, s, s); }
+    if (s >= 20) {
+      ctx.filter = `blur(${s * .035}px)`; outline(ctx, cx, cy, r);
+      ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = s * .05; ctx.stroke(); ctx.filter = 'none';
+    }
+    ctx.restore();
+    face(ctx, cx + s * .08, cy - s * .02, s, m);
+  }
+
+  function face(ctx, fx, fy, s, m) {
+    const ew = s * .12, eh = s * .18, gap = s * .07;
+    const eyes = [[fx - gap / 2 - ew / 2, fy], [fx + gap / 2 + ew / 2, fy + s * .01]];
+    ctx.save();
+    ctx.fillStyle = '#24163A'; ctx.strokeStyle = '#24163A'; ctx.lineCap = 'round';
+    for (const [ex, ey] of eyes) {
+      if (m.eyes === 'closed' || m.eyes === 'sleepy') {
+        ctx.lineWidth = Math.max(1, s * .035);
+        ctx.beginPath();
+        if (m.eyes === 'closed') ctx.arc(ex, ey - eh * .05, ew * .5, .15 * Math.PI, .85 * Math.PI);
+        else { ctx.ellipse(ex, ey + eh * .1, ew / 2, eh * .22, 0, 0, Math.PI * 2); ctx.fill(); }
+        ctx.stroke();
+      } else if (m.eyes === 'happy') {
+        ctx.lineWidth = Math.max(1, s * .04);
+        ctx.beginPath(); ctx.arc(ex, ey + eh * .15, ew * .5, 1.15 * Math.PI, 1.85 * Math.PI); ctx.stroke();
+      } else {
+        const k = m.eyes === 'wide' ? 1.15 : 1;
+        ctx.beginPath(); ctx.ellipse(ex, ey, ew / 2 * k, eh / 2 * k, 0, 0, Math.PI * 2); ctx.fill();
+        if (s >= 20) {
+          ctx.fillStyle = `rgba(255,255,255,${m.eyes === 'wide' ? .55 : .18})`;
+          ctx.beginPath(); ctx.arc(ex + ew * .15, ey - eh * .2, ew * .18, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#24163A';
+        }
+        if (m.eyes === 'sad' && s >= 20) {
+          ctx.lineWidth = Math.max(1, s * .02);
+          ctx.beginPath(); ctx.moveTo(ex - ew * .6, ey - eh * .7); ctx.lineTo(ex + ew * .5, ey - eh * .85); ctx.stroke();
+        }
+      }
+    }
+    if (m.mark === '!' && s >= 20) {
+      ctx.font = `700 ${s * .32}px ui-rounded, system-ui, sans-serif`;
+      ctx.fillStyle = '#FFD426'; ctx.fillText('!', fx + s * .3, fy - s * .22);
+    }
+    ctx.restore();
+  }
+
+  function prep(c, w, h) {
+    c.style.width = w + 'px'; c.style.height = h + 'px';
+    c.width = Math.round(w * DPR); c.height = Math.round(h * DPR);
+    const ctx = c.getContext('2d'); ctx.scale(DPR, DPR); return ctx;
+  }
+
+  function drops(ctx, x, y, s, color = '#7FD0FF') {
+    ctx.save(); ctx.fillStyle = color;
+    const d = [[.2, .98, 1], [.42, 1.1, .9], [.64, .98, .8]];
+    for (const [px, py, k] of d) {
+      const dx = x + px * s, dy = y + py * s, r = s * .07 * k;
+      ctx.beginPath(); ctx.moveTo(dx, dy - r * 2.3);
+      ctx.bezierCurveTo(dx + r * .3, dy - r * 1.4, dx + r, dy - r * .6, dx + r, dy);
+      ctx.arc(dx, dy, r, 0, Math.PI); ctx.bezierCurveTo(dx - r, dy - r * .6, dx - r * .3, dy - r * 1.4, dx, dy - r * 2.3);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // Canvases with data-cloud: a cloud in a mood, optionally with the drops prop.
+  document.querySelectorAll('canvas[data-cloud]').forEach(c => {
+    const s = +c.dataset.cloud, pad = c.dataset.glow ? s * .12 : (c.dataset.prop ? 3 : Math.max(2, s * .08));
+    const box = s + pad * 2;
+    const ctx = prep(c, box, box + (c.dataset.prop ? 4 : 0));
+    const inner = c.dataset.prop ? s * .82 : s;
+    cloud(ctx, pad + (s - inner) / 2, pad, inner, c.dataset.mood || 'relaxed', !!c.dataset.glow || s >= 22);
+    if (c.dataset.prop === 'drops') drops(ctx, pad + (s - inner) / 2, pad - inner * .12, inner);
+  });
+
+  // Template menu bar glyphs: solid outline, eyes cut out.
+  document.querySelectorAll('canvas[data-glyph]').forEach(c => {
+    const w = +c.getAttribute('width'), h = +c.getAttribute('height');
+    const ctx = prep(c, w, h), ink = c.dataset.ink || '#fff', kind = c.dataset.glyph;
+    const s = kind === 'drizzle' ? 13 : 15, ox = kind === 'sun' || kind === 'moon' ? w - s - .5 : (w - s) / 2;
+    const oy = kind === 'drizzle' ? 1 : (h - s) / 2;
+    ctx.fillStyle = ink; ctx.strokeStyle = ink;
+    if (kind === 'sun') {
+      ctx.beginPath(); ctx.arc(5, 5, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 1.2; ctx.lineCap = 'round';
+      for (let i = 0; i < 8; i++) { const a = i * Math.PI / 4; if (a > .2 && a < 1.4) continue; ctx.beginPath(); ctx.moveTo(5 + Math.cos(a) * 4.3, 5 + Math.sin(a) * 4.3); ctx.lineTo(5 + Math.cos(a) * 5.4, 5 + Math.sin(a) * 5.4); ctx.stroke(); }
+    }
+    if (kind === 'moon') { ctx.beginPath(); ctx.arc(5, 5, 4, 0, Math.PI * 2); ctx.fill(); ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath(); ctx.arc(7.2, 3.6, 3.4, 0, Math.PI * 2); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
+    if (kind === 'sun' || kind === 'moon') { ctx.globalCompositeOperation = 'destination-out'; outline(ctx, ox + s / 2, oy + s / 2, s / 2 + 1.4); ctx.fill(); ctx.globalCompositeOperation = 'source-over'; }
+    outline(ctx, ox + s / 2, oy + s / 2, s / 2); ctx.fill();
+    ctx.globalCompositeOperation = 'destination-out';
+    const fx = ox + s / 2 + s * .08, fy = oy + s / 2 - s * .02;
+    for (const [ex, ey] of [[fx - s * .095, fy], [fx + s * .095, fy + s * .01]]) { ctx.beginPath(); ctx.ellipse(ex, ey, s * .07, s * .1, 0, 0, Math.PI * 2); ctx.fill(); }
+    ctx.globalCompositeOperation = 'source-over';
+    if (kind === 'drizzle') { ctx.lineWidth = 1.3; ctx.lineCap = 'round'; for (const dx of [4, 8, 12]) { ctx.beginPath(); ctx.moveTo(ox + dx - 2, oy + s + 1); ctx.lineTo(ox + dx - 3, oy + s + 3.4); ctx.stroke(); } }
+    if (c.dataset.dot) { ctx.fillStyle = '#F2B33D'; ctx.beginPath(); ctx.arc(w - 2.6, 3, 2.6, 0, Math.PI * 2); ctx.fill(); }
+  });
+
+  // App icons (11.2).
+  document.querySelectorAll('canvas[data-icon]').forEach(c => {
+    const px = +c.dataset.px, ctx = prep(c, px, px), kind = c.dataset.icon;
+    const inset = px * .1, t = px - inset * 2, rr = t * .225;
+    ctx.save();
+    ctx.beginPath(); ctx.roundRect(inset, inset, t, t, rr);
+    const bg = ctx.createLinearGradient(0, inset, 0, inset + t);
+    bg.addColorStop(0, '#292929'); bg.addColorStop(1, '#0D0D0D'); ctx.fillStyle = bg; ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = Math.max(.5, px * .006); ctx.stroke();
+    ctx.clip();
+    const s = t * .55;
+    let cx = px / 2 - s / 2, cy = px / 2 - s / 2 - t * .04;
+    if (kind === 'sun') {
+      const sx = cx + s * .82, sy = cy + s * .12, sr = s * .27;
+      ctx.save(); ctx.filter = `blur(${px * .03}px)`; ctx.fillStyle = 'rgba(242,179,61,.45)'; ctx.beginPath(); ctx.arc(sx, sy, sr * 1.4, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+      const sg = ctx.createRadialGradient(sx - sr * .3, sy - sr * .3, 0, sx, sy, sr); sg.addColorStop(0, '#FFE27A'); sg.addColorStop(1, '#F2B33D');
+      ctx.fillStyle = sg; ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI * 2); ctx.fill();
+      cx -= s * .05; cy += s * .06;
+    }
+    if (kind === 'city') {
+      cy -= t * .05;
+      const base = inset + t * .86, bw = t * .062;
+      const hs = [.16, .26, .2, .34, .24, .3, .18, .22, .14];
+      const x0 = px / 2 - hs.length * bw / 2;
+      ctx.fillStyle = '#B9B4FF';
+      hs.forEach((h, i) => { ctx.globalAlpha = .55 + (i % 3) * .15; ctx.fillRect(x0 + i * bw, base - h * t, bw - Math.max(.5, px * .006), h * t); });
+      ctx.globalAlpha = 1;
+    }
+    cloud(ctx, cx, cy, s, 'relaxed', true);
+    if (kind === 'drops') drops(ctx, cx - s * .04, cy + s * .04, s);
+    ctx.restore();
+  });
+
+  // Sample data: Oslo, Saturday 14:00 onward.
+  const hrs = Array.from({ length: 24 }, (_, i) => (14 + i) % 24);
+  const temps = [18, 18, 17, 16, 15, 15, 14, 13, 12, 12, 11, 11, 11, 10, 10, 10, 11, 12, 14, 15, 17, 18, 19, 19];
+  const rain = [0, .4, 1.2, .8, .3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+  const sym = (i) => rain[i] > 0 ? 'i-rain' : (hrs[i] >= 20 || hrs[i] < 7) ? 'i-moon' : i < 1 ? 'i-partly' : 'i-sun';
+  const pad2 = n => String(n).padStart(2, '0');
+
+  document.querySelectorAll('[data-hours]').forEach(el => {
+    el.innerHTML = temps.slice(0, +el.dataset.hours).map((t, i) =>
+      `<div class="hour${i ? '' : ' now'}"><span>${i ? pad2(hrs[i]) : 'Now'}</span><svg width="14" height="14"><use href="#${sym(i)}"/></svg><b>${t}°</b><span class="mm">${rain[i] ? rain[i].toFixed(1) : ''}</span></div>`).join('');
+  });
+
+  const days = [['Today', 'i-rain', 10, 19], ['Sun', 'i-partly', 11, 21], ['Mon', 'i-sun', 12, 23], ['Tue', 'i-cloud', 13, 20], ['Wed', 'i-rain', 9, 17]];
+  const lo = 9, hi = 23;
+  document.querySelectorAll('[data-days]').forEach(el => {
+    el.innerHTML = days.map(([d, s, l, h]) =>
+      `<div class="day"><span class="d">${d}</span><svg width="16" height="16"><use href="#${s}"/></svg><span class="lo">${l}°</span><span class="track"><i style="left:${(l - lo) / (hi - lo) * 100}%;right:${(hi - h) / (hi - lo) * 100}%"></i></span><span>${h}°</span></div>`).join('');
+  });
+  document.querySelectorAll('[data-hourrows]').forEach(el => {
+    const pick = [0, 1, 2, 4, 6, 9];
+    el.innerHTML = pick.map(i => `<div class="day" style="grid-template-columns:38px 18px 1fr 40px"><span class="d">${i ? pad2(hrs[i]) + ':00' : 'Now'}</span><svg width="16" height="16"><use href="#${sym(i)}"/></svg><span style="color:var(--dim-app)">${rain[i] ? rain[i].toFixed(1) + ' mm' : (hrs[i] >= 20 ? 'clear' : i ? 'sunny spells' : 'partly cloudy')}</span><span style="text-align:right">${temps[i]}°</span></div>`).join('');
+  });
+
+  // The skyline chart: rain bars under a temperature line, 24 h.
+  document.querySelectorAll('svg[data-chart]').forEach(svg => {
+    const W = 290, H = 112, top = 14, base = 90, n = 24, bw = W / n;
+    const tMin = 8, tMax = 20, rMax = 1.6;
+    const ty = t => top + (tMax - t) / (tMax - tMin) * 40;
+    let out = '';
+    for (const g of [0, 6, 12, 18]) out += `<line x1="${g * bw}" x2="${g * bw}" y1="${top - 6}" y2="${base}" stroke="rgba(255,255,255,.06)"/>`;
+    out += `<line x1="0" x2="${W}" y1="${base}" y2="${base}" stroke="rgba(255,255,255,.12)"/>`;
+    rain.forEach((r, i) => {
+      if (!r) return;
+      const h = r / rMax * 34;
+      out += `<rect x="${i * bw + 1.5}" y="${base - h}" width="${bw - 3}" height="${h}" rx="1.5" fill="#7FD0FF" fill-opacity=".85"/>`;
+    });
+    const pts = temps.map((t, i) => [i * bw + bw / 2, ty(t)]);
+    out += `<path d="M${pts.map(p => p.map(v => v.toFixed(1)).join(' ')).join(' L')}" fill="none" stroke="rgba(255,255,255,.88)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>`;
+    out += `<circle cx="${pts[0][0]}" cy="${pts[0][1]}" r="3" fill="#fff"/>`;
+    const mi = 13; out += `<text x="${pts[mi][0]}" y="${pts[mi][1] + 13}" fill="rgba(255,255,255,.55)" font-size="9.5" text-anchor="middle">10°</text>`;
+    out += `<text x="${pts[0][0] + 6}" y="${pts[0][1] - 5}" fill="#fff" font-size="9.5" font-weight="600">18°</text>`;
+    out += `<text x="${2 * bw + bw / 2}" y="${base - 1.2 / rMax * 34 - 4}" fill="#7FD0FF" font-size="9" text-anchor="middle">1.2 mm</text>`;
+    [['Now', 0], ['20', 6], ['02', 12], ['08', 18]].forEach(([l, g]) => out += `<text x="${g * bw + (g ? 0 : 1)}" y="${base + 13}" fill="rgba(255,255,255,.38)" font-size="9.5" ${g ? 'text-anchor="middle"' : ''}>${l}</text>`);
+    out += `<text x="${W}" y="${base + 13}" fill="rgba(255,255,255,.38)" font-size="9.5" text-anchor="end">14</text>`;
+    svg.innerHTML = out;
+  });
+
+  // Open islands.
+  const detail = {
+    bars: () => {
+      let s = '<svg viewBox="0 0 132 70" width="132" height="70" role="img" aria-label="Rain over the next 12 hours, peaking at 1.2 mm at 16:00">';
+      for (let i = 0; i < 12; i++) {
+        const r = rain[i], h = Math.max(2, r / 1.4 * 50);
+        s += `<rect x="${i * 11 + 1}" y="${54 - h}" width="8" height="${h}" rx="2" fill="${r ? '#7FD0FF' : 'rgba(255,255,255,.12)'}"/>`;
+      }
+      s += '<text x="0" y="68" fill="rgba(255,255,255,.38)" font-size="9">now</text><text x="66" y="68" fill="rgba(255,255,255,.38)" font-size="9" text-anchor="middle">+6h</text><text x="132" y="68" fill="rgba(255,255,255,.38)" font-size="9" text-anchor="end">+12h</text></svg>';
+      return s;
+    },
+    rows: () => `<div class="drows"><div><svg width="14" height="14"><use href="#i-rain"/></svg>15:00 <span>light rain</span></div><div><svg width="14" height="14"><use href="#i-moon"/></svg>Tonight <span>10°</span></div><div><svg width="14" height="14"><use href="#i-sun"/></svg>Tomorrow <span>21°</span></div></div>`,
+    ring: () => {
+      const p = .58, R = 28, C = 2 * Math.PI * R;
+      return `<svg viewBox="0 0 132 80" width="132" height="80" role="img" aria-label="Daylight: 58 percent gone, sunset 18:41"><circle cx="66" cy="36" r="${R}" fill="none" stroke="rgba(255,255,255,.1)" stroke-width="6"/><circle cx="66" cy="36" r="${R}" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" stroke-dasharray="${C * p} ${C}" transform="rotate(-90 66 36)"/><text x="66" y="40" fill="#fff" font-size="11" font-weight="600" text-anchor="middle">18:41</text><text x="66" y="77" fill="rgba(255,255,255,.38)" font-size="9" text-anchor="middle">sunset</text></svg>`;
+    },
+  };
+  document.querySelectorAll('[data-island]').forEach(el => {
+    el.innerHTML = `<div class="notchcut"></div><div class="band"><canvas data-big width="92" height="92"></canvas><div style="min-width:0"><div class="app">Skyline</div><div class="ttl">18° · rain within the hour</div><div class="stl">Light rain 15:00–19:00, 2.7 mm in all</div><div class="acts"><span class="pillbtn">Forecast <span class="kh">↩</span></span><span class="pillbtn">Place <span class="kh">L</span></span></div></div><div>${detail[el.dataset.island]()}</div></div><div class="dots"><i></i><i class="cur"></i></div>`;
+    const c = el.querySelector('canvas'), ctx = prep(c, 92, 100);
+    cloud(ctx, 10, 6, 72, 'busy', true); drops(ctx, 10, 6 - 72 * .12, 72);
+  });
+})();
+</script>
