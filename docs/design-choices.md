@@ -23,9 +23,12 @@ Both open questions were answered with the recommended option, and both are now 
   (≥ 20.8 m/s mean) or ≥ 35 °C within the next three hours is `needsYou` (the amber dot on the glyph,
   `asking` on the cloud). Everything else, rain within the hour included, is at most `notice`.
   DESIGN.md 18.5 now names this exception.
-- **The notch, with no island yet.** Skyline never claims the notch and offers no switch: it has no
-  island page to draw until phase 2. Settings name the owner ("Notch is used by Relay"). DESIGN.md
-  18.2 now says so for any app in that position.
+- **The notch, phase 1 (built 10 Oct 2026).** Skyline never claims the notch on its own; Relay has it
+  by default. Settings name the owner ("Notch is used by Relay") with a one-click **Use for Skyline**,
+  and **Give it to Relay** back. While Skyline owns it, it draws its own island (option A above, one
+  page, so no dots or swiping) and Relay's pill waits at the right edge. Two departures from 18.7:
+  the closed island's wings are 60 pt, not 76, because the closed island hides the menu bar items
+  under it; and the open island is the notch plus 160 pt (about 200), not 222, because one page needs no dots.
 
 ## Mood mapping
 

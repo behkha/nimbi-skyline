@@ -42,8 +42,13 @@ Weather data © MET Norway, under [CC BY 4.0](https://creativecommons.org/licens
 - **Keys** in the dropdown: **R** asks MET again (shown only once the forecast has expired; MET's terms
   forbid asking sooner), **L** changes place, **,** opens settings, **esc** goes back or closes.
 - **Place:** follow the Mac (Location Services) or pick a city. Settings also hold the theme (Dark,
-  Black), the text size, and who owns the notch. Skyline never claims the notch: Relay has it, and
-  Skyline stays in the menu bar (DESIGN.md 18.2).
+  Black) and the text size.
+- **The notch:** shared by every nimbi app, one at a time (DESIGN.md 18.2). Skyline never takes it on
+  its own; Relay has it by default. **Use for Skyline** in settings moves Skyline there: a black island
+  with the cloud and the glance ("☂︎ 18°"), opening on hover into the next 12 hours (rain bars, or
+  the temperature on a dry day) with **Forecast ↩** and **Place L**. The dropdown then hangs from the
+  island, and the menu bar glyph steps aside. **Give it to Relay** hands it back; Relay's pill waits
+  at the right edge meanwhile. Either app's switch works live.
 
 ## Moods
 
@@ -107,10 +112,12 @@ swift run Skyline --fetch 59.9139 10.7522
 
 - `Sources/SkylineCore` — everything that isn't a view: `METClient` and its cache, the compact JSON
   models, `SkyReport` (rain now / soon / later, hazards, five days, the headline), `HourlyOutlook` (the
-  chart's hours and its spoken summary), `Sun`, `SkyMood`, `LocationService`.
+  chart's hours and its spoken summary), `IslandPage` (the notch page: glance, title, subtitle, bars),
+  `Sun`, `SkyMood`, `LocationService`.
 - `Sources/Skyline` — the app: `SkyModel` (fetches at `Expires`, re-reads the cache every 30 s),
   `MenuBarItem` (the template glyph), `Dropdown` (the panel and its keys), `ForecastView` and
-  `SkylineChart`, `PlacePicker`, `SettingsView` (with the notch owner), `About`, `Demo`.
+  `SkylineChart`, `PlacePicker`, `SettingsView` (with the notch switch), `Island` (Skyline at the
+  notch), `About`, `Demo`.
 - `Tests/SkylineCoreTests` — Swift Testing suites with scripted HTTP answers and a movable clock.
 - `scripts/` — `build.sh`, `make-icon.swift` (the app icon, drawn procedurally).
 - `worker/` — the Cloudflare Worker proxy, with its own tests (`cd worker && npm test`).
