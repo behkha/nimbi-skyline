@@ -207,27 +207,3 @@ struct DropdownRoot: View {
         }
     }
 }
-
-/// Hosting view that reports when its SwiftUI content wants a different size, so the
-/// borderless panel always matches it.
-final class SizeReportingHostingView<Content: View>: NSHostingView<Content> {
-    var onFittingSizeChange: (() -> Void)?
-    private var lastSize: NSSize = .zero
-
-    override func layout() {
-        super.layout()
-        report()
-    }
-
-    override func invalidateIntrinsicContentSize() {
-        super.invalidateIntrinsicContentSize()
-        DispatchQueue.main.async { [weak self] in self?.report() }
-    }
-
-    private func report() {
-        let size = fittingSize
-        guard abs(size.width - lastSize.width) > 0.5 || abs(size.height - lastSize.height) > 0.5 else { return }
-        lastSize = size
-        DispatchQueue.main.async { [weak self] in self?.onFittingSizeChange?() }
-    }
-}

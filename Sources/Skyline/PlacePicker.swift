@@ -10,7 +10,7 @@ struct PlacePicker: View {
     @ObservedObject var search: PlaceSearch
     var actions: PanelActions
     @ObservedObject private var look = NimbiAppearance.shared
-    @ViewFocus private var fieldFocused: Bool
+    @FocusState private var fieldFocused: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {

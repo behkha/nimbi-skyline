@@ -44,13 +44,13 @@ struct SkylineChart: View {
         baseline.addLine(to: CGPoint(x: width, y: base + 0.5))
         context.stroke(baseline, with: .color(.white.opacity(0.12)), lineWidth: 1)
 
-        // Rain: the skyline. 2 mm in an hour fills the bar; heavier rain stretches the scale.
+        // Rain: the skyline, in the flat `rain` color (DESIGN.md 4.5). 2 mm in an hour fills the bar; heavier rain stretches the scale.
         let wettest = outlook.wettest
         let rainTop = max(2, wettest?.precipitation ?? 0)
         for (i, hour) in hours.enumerated() where hour.precipitation >= 0.1 {
             let h = max(2, CGFloat(hour.precipitation / rainTop) * barMax)
             let rect = CGRect(x: CGFloat(i) * slot + 1.5, y: base - h, width: max(1, slot - 3), height: h)
-            context.fill(Path(roundedRect: rect, cornerRadius: 1.5), with: .color(Color.rain.opacity(0.85)))
+            context.fill(Path(roundedRect: rect, cornerRadius: 1.5), with: .color(Nimbi.State.rain.opacity(0.85)))
         }
 
         // Temperature: at least a 6° span, so a flat day reads flat.
@@ -81,7 +81,7 @@ struct SkylineChart: View {
         }
         if let wettest, let i = hours.firstIndex(of: wettest) {
             let h = max(2, CGFloat(wettest.precipitation / rainTop) * barMax)
-            context.draw(Text(String(format: "%.1f mm", wettest.precipitation)).font(look.font(9)).foregroundColor(.rain),
+            context.draw(Text(String(format: "%.1f mm", wettest.precipitation)).font(look.font(9)).foregroundColor(Nimbi.State.rain),
                          at: clamped(CGPoint(x: CGFloat(i) * slot + slot / 2, y: base - h - 3), width: width),
                          anchor: .bottom)
         }

@@ -63,8 +63,8 @@ mapping lives in `SkyMood.from` (`Sources/SkylineCore/SkyMood.swift`); the first
 
 Notes:
 - Rain beats night: if rain is coming at 23:00 you still get the notice.
-- `needsYou` is used only for row 2. DESIGN.md 18.5 says a weather *update* is never `needsYou`; a
-  thunderstorm or dangerous heat in the next three hours is treated as the one honest exception.
+- `needsYou` is used only for row 2: a thunderstorm, storm-force wind or dangerous heat in the next
+  three hours, the one exception DESIGN.md 18.5 allows for weather.
 - The menu bar glyph stays a template image. It shows drizzle marks under the cloud for row 3 and an
   amber dot for row 2, and nothing else (DESIGN.md 11.3).
 

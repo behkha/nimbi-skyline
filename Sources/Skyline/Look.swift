@@ -3,17 +3,6 @@ import NimbiKit
 import SkylineCore
 import SwiftUI
 
-/// SwiftUI's `@State` and `@FocusState` are macros in this SDK and their plugin only ships with
-/// full Xcode. The property wrappers through an alias build with the Command Line Tools alone.
-typealias ViewState<Value> = SwiftUI.State<Value>
-typealias ViewFocus<Value: Hashable> = SwiftUI.FocusState<Value>
-
-extension Color {
-    /// Rain in the chart and the island bars: `sky` from the aurora as a flat color, never the
-    /// gradient. Skyline's own token until DESIGN.md 4.5 and NimbiKit gain `Nimbi.State.rain`.
-    static let rain = Color(hex: "#7FD0FF")
-}
-
 /// Skyline's look settings: saved here, mirrored into NimbiKit's `NimbiAppearance`.
 enum LookSettings {
     private static let themeKey = "Theme"

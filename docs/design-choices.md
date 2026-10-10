@@ -13,18 +13,19 @@ four are the recommended options.
 
 ## Answered questions (10 Oct 2026)
 
-Both open questions were answered with the recommended option. Each still needs an edit in the nimbi
-repos, which Skyline doesn't make itself.
+Both open questions were answered with the recommended option, and both are now in DESIGN.md
+(nimbi `acb9739`) and NimbiKit 0.2.0.
 
 - **A `rain` color: yes, `sky` as a flat color.** Rain bars (the dropdown's chart now, the island's
-  bars later) use `sky` `#7FD0FF` as one flat color, never the aurora gradient. Skyline defines it once,
-  as `Color.rain` in `Sources/Skyline/Look.swift`. **Pending:** add a `rain` state token to DESIGN.md
-  4.5 and `Nimbi.State.rain` to NimbiKit, then delete Skyline's copy.
+  bars later) use `rain` `#7FD0FF`, which is `sky` as one flat color, never the aurora gradient.
+  DESIGN.md 4.5 lists it; Skyline uses `Nimbi.State.rain` from NimbiKit.
 - **`needsYou`: keep it, for hazards only.** `SkyMood` stays as it is. Only thunder, storm-force wind
   (≥ 20.8 m/s mean) or ≥ 35 °C within the next three hours is `needsYou` (the amber dot on the glyph,
   `asking` on the cloud). Everything else, rain within the hour included, is at most `notice`.
-  **Pending:** write this exception into DESIGN.md 18.5, which still says a weather update is never
-  `needsYou`.
+  DESIGN.md 18.5 now names this exception.
+- **The notch, with no island yet.** Skyline never claims the notch and offers no switch: it has no
+  island page to draw until phase 2. Settings name the owner ("Notch is used by Relay"). DESIGN.md
+  18.2 now says so for any app in that position.
 
 ## Mood mapping
 
