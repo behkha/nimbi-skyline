@@ -11,13 +11,20 @@ four are the recommended options.
 | Island page (18.4, phase 2) | **A · bars.** Rain for the next 12 h; temperature bars on dry days. Glance "☂︎ 18°" when rain is coming, else "18°". Title like "18° · rain within the hour". Actions: Forecast ↩, Place L (never primary unless `needsYou`). | B · three text rows. C · daylight ring. |
 | App icon (11.2) | **A · Raindrops.** Three sky-blue (`#7FD0FF`) drops below the cloud's left side, away from the eyes. Drawn by `scripts/make-icon.swift`. | B · sun behind (generic; amber means "waiting on you"). C · city skyline below (says city before weather; mush at 32 px). |
 
-## Open questions for DESIGN.md
+## Answered questions (10 Oct 2026)
 
-- **A `rain` color.** The chart and island bars use `sky` `#7FD0FF` as a flat color (never the aurora
-  gradient). DESIGN.md 4.5 should gain a `rain` state token before the views ship.
-- **The `needsYou` exception.** 18.5 says a weather update is never `needsYou`. Skyline proposes one
-  exception: thunder, storm-force wind or dangerous heat within three hours. Write it into 18.5, or
-  drop Skyline's row 2 to `notice`.
+Both open questions were answered with the recommended option. Each still needs an edit in the nimbi
+repos, which Skyline doesn't make itself.
+
+- **A `rain` color: yes, `sky` as a flat color.** Rain bars (the dropdown's chart now, the island's
+  bars later) use `sky` `#7FD0FF` as one flat color, never the aurora gradient. Skyline defines it once,
+  as `Color.rain` in `Sources/Skyline/Look.swift`. **Pending:** add a `rain` state token to DESIGN.md
+  4.5 and `Nimbi.State.rain` to NimbiKit, then delete Skyline's copy.
+- **`needsYou`: keep it, for hazards only.** `SkyMood` stays as it is. Only thunder, storm-force wind
+  (≥ 20.8 m/s mean) or ≥ 35 °C within the next three hours is `needsYou` (the amber dot on the glyph,
+  `asking` on the cloud). Everything else, rain within the hour included, is at most `notice`.
+  **Pending:** write this exception into DESIGN.md 18.5, which still says a weather update is never
+  `needsYou`.
 
 ## Mood mapping
 

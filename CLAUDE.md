@@ -17,7 +17,8 @@ Skyline is a native macOS menu bar weather app, app #2 in the nimbi family (Rela
 
 ## Commands
 
-- `swift build` / `swift test` (Swift Testing; the Command Line Tools are enough). Inside Claude Code's command sandbox the Testing macro plugin can't load ("plugin for module 'TestingMacros' not found"); run `swift test` outside the sandbox.
+- `swift build` / `swift test` (Swift Testing; the Command Line Tools are enough). Inside Claude Code's command sandbox the Testing macro plugin can't load ("plugin for module 'TestingMacros' not found"); run `swift test` outside the sandbox. If it still says the plugin is missing, point at it: `swift test -Xswiftc -plugin-path -Xswiftc /Library/Developer/CommandLineTools/usr/lib/swift/host/plugins/testing`.
+- `SKYLINE_DEMO=rain|storm|clear build/Skyline.app/Contents/MacOS/Skyline` shows a made-up sky (no MET, no location), for checking the glyph and dropdown.
 - `scripts/build.sh [--install]` builds and ad-hoc signs `build/Skyline.app`
 - `swift run Skyline --fetch <lat> <lon>` prints a live forecast reading (direct MET)
 - `cd worker && npm test` tests the proxy

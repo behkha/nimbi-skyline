@@ -6,9 +6,10 @@ Skyline is the second app in the [nimbi](https://github.com/behkha/nimbi) family
 [Relay](https://github.com/behkha/relay). It lives in the menu bar, shows the temperature next to
 the nimbi cloud, and tells you when rain is coming within the hour.
 
-**Status:** early. The data side works (MET client, cache, location, sky reading, moods, tests).
-The menu bar glyph, dropdown and icon are designed and chosen
-([docs/design-choices.md](docs/design-choices.md)); the views are next.
+**Status:** early. The menu bar glyph, the dropdown (sky now, a 24 h skyline chart, five days), the
+place picker, settings and About window are built, on top of the MET client, cache, location, sky
+reading and moods. The choices behind them are in [docs/design-choices.md](docs/design-choices.md).
+The Worker proxy isn't deployed yet, so builds talk to api.met.no directly.
 
 Weather data © MET Norway, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
@@ -30,6 +31,19 @@ Weather data © MET Norway, under [CC BY 4.0](https://creativecommons.org/licens
 - **Day and night** come from a local solar position calculation, so no second API is needed.
 - **"Soon"** means within the hour. MET's minute-by-minute nowcast exists only for the Nordics; Skyline
   uses hourly steps everywhere for now.
+
+## Using it
+
+- **Menu bar:** the nimbi cloud and the temperature. Drizzle marks hang under the cloud when rain starts
+  within the hour; an amber dot means a storm or dangerous heat within three hours.
+- **Click** for the dropdown: the cloud in its mood, the place and what the sky is doing, the next 24
+  hours as a skyline (rain bars under the temperature line), and five days. **Right-click** for a short
+  menu.
+- **Keys** in the dropdown: **R** asks MET again (shown only once the forecast has expired; MET's terms
+  forbid asking sooner), **L** changes place, **,** opens settings, **esc** goes back or closes.
+- **Place:** follow the Mac (Location Services) or pick a city. Settings also hold the theme (Dark,
+  Black), the text size, and who owns the notch. Skyline never claims the notch: Relay has it, and
+  Skyline stays in the menu bar (DESIGN.md 18.2).
 
 ## Moods
 
@@ -75,6 +89,14 @@ scripts/build.sh
 `/Applications`. Set `SKYLINE_PROXY_URL=https://…` to bake the Worker's URL in. You can also set it at
 runtime with `defaults write app.nimbi.skyline SkylineProxyURL https://…`.
 
+To look at the glyph and the dropdown in a given sky without waiting for the weather, run a demo
+(made-up forecast for Oslo; asks neither MET nor Location Services): `rain` (rain within the hour),
+`storm` (thunder: the amber dot) or `clear`.
+
+```bash
+SKYLINE_DEMO=storm build/Skyline.app/Contents/MacOS/Skyline
+```
+
 To see what Skyline makes of the live forecast for a place, without any UI:
 
 ```bash
@@ -84,8 +106,11 @@ swift run Skyline --fetch 59.9139 10.7522
 ## Layout
 
 - `Sources/SkylineCore` — everything that isn't a view: `METClient` and its cache, the compact JSON
-  models, `SkyReport` (rain now / soon / later, hazards, five days), `Sun`, `SkyMood`, `LocationService`.
-- `Sources/Skyline` — the app: menu bar item and (soon) the views.
+  models, `SkyReport` (rain now / soon / later, hazards, five days, the headline), `HourlyOutlook` (the
+  chart's hours and its spoken summary), `Sun`, `SkyMood`, `LocationService`.
+- `Sources/Skyline` — the app: `SkyModel` (fetches at `Expires`, re-reads the cache every 30 s),
+  `MenuBarItem` (the template glyph), `Dropdown` (the panel and its keys), `ForecastView` and
+  `SkylineChart`, `PlacePicker`, `SettingsView` (with the notch owner), `About`, `Demo`.
 - `Tests/SkylineCoreTests` — Swift Testing suites with scripted HTTP answers and a movable clock.
 - `scripts/` — `build.sh`, `make-icon.swift` (the app icon, drawn procedurally).
 - `worker/` — the Cloudflare Worker proxy, with its own tests (`cd worker && npm test`).
