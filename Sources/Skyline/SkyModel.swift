@@ -39,6 +39,14 @@ final class SkyModel: ObservableObject {
     var timeZone: TimeZone { place?.timeZone ?? .current }
 
     func start() {
+        if let demo = Demo.forecast() {
+            place = Demo.place
+            forecast = demo
+            fetchedAt = Date()
+            nextRefresh = Date().addingTimeInterval(30 * 60)
+            reread()
+            return
+        }
         location.$place.removeDuplicates().sink { [weak self] place in
             guard let self else { return }
             let moved = place?.coordinate != self.place?.coordinate
