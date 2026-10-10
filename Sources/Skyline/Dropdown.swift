@@ -18,6 +18,10 @@ struct PanelActions {
 final class PanelState: ObservableObject {
     enum Page { case forecast, place, settings }
     @Published var page = Page.forecast
+    /// Hanging flush from the notch island (DESIGN.md 18.9) rather than from the menu bar glyph.
+    @Published var hanging = false
+    /// While hanging: at least as wide as the island, so the two read as one piece.
+    @Published var minWidth: CGFloat = 0
 }
 
 /// Borderless panel that takes keys without making Skyline the active app.
@@ -49,15 +53,18 @@ final class Dropdown: NSObject, NSWindowDelegate {
     private let model: SkyModel
     private let item: MenuBarItem
     private let search: PlaceSearch
-    private let notch = NotchWatch()
+    private let notch: NotchWatch
+    /// Set when Skyline owns the notch; the dropdown can then hang from the island.
+    weak var island: IslandController?
     private var host: SizeReportingHostingView<AnyView>!
     private var keyMonitor: Any?
     private var closedAt = Date.distantPast
     var onAbout: (() -> Void)?
 
-    init(model: SkyModel, item: MenuBarItem) {
+    init(model: SkyModel, item: MenuBarItem, notch: NotchWatch) {
         self.model = model
         self.item = item
+        self.notch = notch
         self.search = PlaceSearch(location: model.location)
         super.init()
         window.delegate = self
@@ -87,11 +94,25 @@ final class Dropdown: NSObject, NSWindowDelegate {
     }
 
     func open(_ page: PanelState.Page) {
+        hang(false)
         state.page = page
         if page == .place { search.reset() }
         place()
         window.makeKeyAndOrderFront(nil)
         item.highlight(true)
+        startKeys()
+    }
+
+    /// Opens under the notch island, flush with it.
+    func openFromIsland(_ page: PanelState.Page) {
+        guard let island, island.isShown else { open(page); return }
+        if isOpen { item.highlight(false) }
+        hang(true)
+        state.minWidth = island.closedWidth
+        state.page = page
+        if page == .place { search.reset() }
+        place()
+        window.makeKeyAndOrderFront(nil)
         startKeys()
     }
 
@@ -102,6 +123,15 @@ final class Dropdown: NSObject, NSWindowDelegate {
         stopKeys()
         closedAt = Date()
         state.page = .forecast
+        hang(false)
+    }
+
+    private func hang(_ on: Bool) {
+        guard state.hanging != on else { return }
+        state.hanging = on
+        // PanelBackground turns into the island's flat-topped black body at the notch.
+        NimbiAppearance.shared.dock = on ? .notch : .right
+        if !on { island?.detach() }
     }
 
     private func show(_ page: PanelState.Page) {
@@ -121,6 +151,14 @@ final class Dropdown: NSObject, NSWindowDelegate {
     /// Hangs the panel from the glyph: centred under it, kept on screen, top fixed as the
     /// content grows or shrinks.
     private func place() {
+        if state.hanging, let island, let hang = island.hangPoint {
+            let size = host.fittingSize
+            let inset: CGFloat = 16
+            island.attach(width: size.width - 2 * inset)
+            window.setFrame(NSRect(x: (hang.x - size.width / 2).rounded(), y: (hang.y + inset - size.height).rounded(),
+                                   width: size.width, height: size.height), display: true)
+            return
+        }
         guard let button = item.buttonFrame else { return }
         let screen = NSScreen.screens.first { $0.frame.intersects(button) } ?? NSScreen.main
         let size = host.fittingSize
@@ -192,11 +230,18 @@ struct DropdownRoot: View {
 
     var body: some View {
         page
+            .frame(minWidth: state.hanging ? state.minWidth : nil)
             .background(PanelBackground(cornerRadius: Nimbi.Radius.panel))
-            .clipShape(RoundedRectangle(cornerRadius: Nimbi.Radius.panel, style: .continuous))
+            .clipShape(clip)
             .floatingPanelShadow()
+            .environment(\.hangsFromPill, state.hanging)
             .environment(\.colorScheme, .dark)
             .fixedSize()
+    }
+
+    private var clip: AnyShape {
+        state.hanging ? AnyShape(IslandBody(radius: Nimbi.Radius.panel + 4))
+            : AnyShape(RoundedRectangle(cornerRadius: Nimbi.Radius.panel, style: .continuous))
     }
 
     @ViewBuilder private var page: some View {

@@ -1,18 +1,27 @@
 import AppKit
 import SkylineCore
 
-/// Wires the pieces: the sky model, the menu bar glyph, the dropdown and the About window.
+/// Wires the pieces: the sky model, the menu bar glyph, the notch island (when Skyline owns the
+/// notch), the dropdown and the About window.
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let model = SkyModel()
     private var item: MenuBarItem!
     private var dropdown: Dropdown!
     private let about = AboutWindow()
+    private var notch: NotchWatch!
+    private var island: IslandController!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         LookSettings.load()
+        notch = NotchWatch()
         item = MenuBarItem(model: model)
-        dropdown = Dropdown(model: model, item: item)
+        dropdown = Dropdown(model: model, item: item, notch: notch)
+        island = IslandController(model: model, notch: notch)
+        island.onOpenPanel = { [weak self] page in self?.dropdown.openFromIsland(page) }
+        // One Skyline on screen at a time: the island replaces the menu bar glyph while it's shown.
+        island.onShown = { [weak self] shown in self?.item.statusItem.isVisible = !shown }
+        dropdown.island = island
         dropdown.onAbout = { [weak self] in self?.about.show() }
         item.onClick = { [weak self] in self?.dropdown.toggle() }
         item.menu = { [weak self] in self?.shortMenu() ?? NSMenu() }
