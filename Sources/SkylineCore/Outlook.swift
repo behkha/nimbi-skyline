@@ -8,6 +8,11 @@ public struct HourlyOutlook: Equatable, Sendable {
         public var temperature: Double
         /// mm over the hour that starts at `time`.
         public var precipitation: Double
+        /// MET's 10–90% temperature range, when the response has it.
+        public var temperatureLow: Double? = nil
+        public var temperatureHigh: Double? = nil
+        /// % chance of rain over the hour.
+        public var chance: Double? = nil
     }
 
     public var hours: [Hour]
@@ -19,7 +24,8 @@ public struct HourlyOutlook: Equatable, Sendable {
         let start = steps.lastIndex(where: { $0.time <= now && now < $0.end })
             ?? steps.firstIndex(where: { $0.time > now }) ?? steps.endIndex
         hours = steps[start...].prefix { $0.period <= 3600 }.prefix(count).map {
-            Hour(time: $0.time, temperature: $0.temperature, precipitation: $0.precipitation ?? 0)
+            Hour(time: $0.time, temperature: $0.temperature, precipitation: $0.precipitation ?? 0,
+                 temperatureLow: $0.temperatureLow, temperatureHigh: $0.temperatureHigh, chance: $0.precipitationChance)
         }
     }
 

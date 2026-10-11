@@ -22,7 +22,8 @@ public struct IslandPage: Equatable, Sendable {
 
     public static let hours = 12
 
-    public init(report: SkyReport, outlook: HourlyOutlook, urgency: Urgency, timeZone: TimeZone) {
+    /// `note` (from `Conditions`) joins the subtitle on a dry day: "Dry for 12 hours · air good · UV up to 3".
+    public init(report: SkyReport, outlook: HourlyOutlook, urgency: Urgency, timeZone: TimeZone, note: String? = nil) {
         let clock = HourlyOutlook.clock(timeZone)
         let now = HourlyOutlook.degrees(report.current.temperature)
         let next = Array(outlook.hours.prefix(Self.hours))
@@ -54,7 +55,9 @@ public struct IslandPage: Equatable, Sendable {
             bars = .rain(next.map(\.precipitation))
         } else {
             let temps = next.map(\.temperature)
-            if let high = temps.max(), let low = temps.min() {
+            if let note, !next.isEmpty {
+                subtitle = Self.clip("Dry for \(next.count) hours · \(note)", 60)
+            } else if let high = temps.max(), let low = temps.min() {
                 subtitle = "Dry for \(next.count) hours · high \(HourlyOutlook.degrees(high)), low \(HourlyOutlook.degrees(low))"
             } else {
                 subtitle = "No hourly forecast yet."

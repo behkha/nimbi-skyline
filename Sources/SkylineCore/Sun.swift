@@ -29,6 +29,58 @@ public enum Sun {
         elevation(at: date, coordinate: coordinate) > horizon
     }
 
+    public enum Event: Equatable, Sendable {
+        case rise(Date)
+        case set(Date)
+
+        public var date: Date {
+            switch self { case .rise(let d), .set(let d): return d }
+        }
+    }
+
+    /// Sunrises and sunsets between two moments, in order, each to within a few seconds.
+    /// Empty on a polar day or night.
+    public static func events(from start: Date, to end: Date, coordinate: Coordinate) -> [Event] {
+        let step: TimeInterval = 10 * 60
+        var found: [Event] = []
+        var t = start
+        var wasUp = isUp(at: t, coordinate: coordinate)
+        while t < end {
+            let next = min(end, t.addingTimeInterval(step))
+            let up = isUp(at: next, coordinate: coordinate)
+            if up != wasUp {
+                // Halve the ten minutes down to about a second.
+                var lo = t, hi = next
+                for _ in 0..<10 {
+                    let mid = lo.addingTimeInterval(hi.timeIntervalSince(lo) / 2)
+                    if isUp(at: mid, coordinate: coordinate) == wasUp { lo = mid } else { hi = mid }
+                }
+                found.append(up ? .rise(hi) : .set(hi))
+            }
+            wasUp = up
+            t = next
+        }
+        return found
+    }
+
+    /// Sunrise and sunset on the local day that contains `date`; nil where the sun doesn't
+    /// rise or set that day.
+    public static func times(on date: Date, coordinate: Coordinate, timeZone: TimeZone) -> (rise: Date?, set: Date?) {
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = timeZone
+        let start = calendar.startOfDay(for: date)
+        guard let end = calendar.date(byAdding: .day, value: 1, to: start) else { return (nil, nil) }
+        let all = events(from: start, to: end, coordinate: coordinate)
+        let rise = all.first { if case .rise = $0 { return true }; return false }
+        let set = all.first { if case .set = $0 { return true }; return false }
+        return (rise?.date, set?.date)
+    }
+
+    /// The next sunrise or sunset within two days.
+    public static func next(after date: Date, coordinate: Coordinate) -> Event? {
+        events(from: date, to: date.addingTimeInterval(2 * 86_400), coordinate: coordinate).first
+    }
+
     private static func normalize(_ degrees: Double) -> Double {
         let d = degrees.truncatingRemainder(dividingBy: 360)
         return d < 0 ? d + 360 : d
