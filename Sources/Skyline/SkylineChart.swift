@@ -44,6 +44,13 @@ struct SkylineChart: View {
         baseline.addLine(to: CGPoint(x: width, y: base + 0.5))
         context.stroke(baseline, with: .color(.white.opacity(0.12)), lineWidth: 1)
 
+        // Rain chance: a faint wash behind the hours likely to be wet (30% or more).
+        for (i, hour) in hours.enumerated() {
+            guard let chance = hour.chance, chance >= 30 else { continue }
+            let rect = CGRect(x: CGFloat(i) * slot, y: top - 8, width: slot, height: base - top + 8)
+            context.fill(Path(rect), with: .color(Nimbi.State.rain.opacity(chance / 100 * 0.1)))
+        }
+
         // Rain: the skyline, in the flat `rain` color (DESIGN.md 4.5). 2 mm in an hour fills the bar; heavier rain stretches the scale.
         let wettest = outlook.wettest
         let rainTop = max(2, wettest?.precipitation ?? 0)
@@ -55,11 +62,27 @@ struct SkylineChart: View {
 
         // Temperature: at least a 6° span, so a flat day reads flat.
         let temps = hours.map(\.temperature)
-        var low = temps.min()!, high = temps.max()!
+        var low = (hours.compactMap(\.temperatureLow) + temps).min()!
+        var high = (hours.compactMap(\.temperatureHigh) + temps).max()!
         if high - low < 6 { let mid = (high + low) / 2; low = mid - 3; high = mid + 3 }
         func point(_ i: Int) -> CGPoint {
             CGPoint(x: CGFloat(i) * slot + slot / 2, y: top + CGFloat((high - temps[i]) / (high - low)) * band)
         }
+        // MET's 10–90% range: a soft band round the line, wider where it's less sure.
+        if hours.allSatisfy({ $0.temperatureLow != nil && $0.temperatureHigh != nil }) {
+            func y(_ t: Double) -> CGFloat { top + CGFloat((high - t) / (high - low)) * band }
+            var area = Path()
+            for (i, h) in hours.enumerated() {
+                let p = CGPoint(x: CGFloat(i) * slot + slot / 2, y: y(h.temperatureHigh!))
+                if i == 0 { area.move(to: p) } else { area.addLine(to: p) }
+            }
+            for (i, h) in hours.enumerated().reversed() {
+                area.addLine(to: CGPoint(x: CGFloat(i) * slot + slot / 2, y: y(h.temperatureLow!)))
+            }
+            area.closeSubpath()
+            context.fill(area, with: .color(.white.opacity(0.07)))
+        }
+
         var line = Path()
         line.move(to: point(0))
         for i in 1..<hours.count { line.addLine(to: point(i)) }

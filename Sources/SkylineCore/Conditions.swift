@@ -60,15 +60,15 @@ public struct Conditions: Equatable, Sendable {
         if let feels = now0.apparentTemperature {
             let gap = feels - now0.temperature
             if abs(gap) >= 2 { chips.append(Chip(id: "feels", text: "Feels \(deg(feels))", spoken: "Feels like \(deg(feels))")) }
-            let why = abs(gap) < 1 ? "about the same" : gap < 0 ? (now0.windSpeed ?? 0) >= 4 ? "wind makes it cooler" : "cooler than it reads"
-                : (now0.humidity ?? 0) >= 60 ? "humid, so warmer" : "warmer than it reads"
+            let why = abs(gap) < 1 ? "same as air" : gap < 0 ? (now0.windSpeed ?? 0) >= 4 ? "wind chill" : "cooler"
+                : (now0.humidity ?? 0) >= 60 ? "humid" : "warmer"
             tiles.append(Tile(id: "feels", label: "Feels like", value: deg(feels), meaning: why))
         }
 
         // Wind.
         if let wind = now0.windSpeed {
             let gust = now0.windGust
-            let from = now0.windFromDirection.map { " · from \(Self.compass($0))" } ?? ""
+            let from = now0.windFromDirection.map { " · \(Self.compass($0))" } ?? ""
             if wind >= 5 || (gust ?? 0) >= 10 {
                 chips.append(Chip(id: "wind", text: "Wind \(Int(wind.rounded()))",
                                   detail: gust.map { "gusts \(Int($0.rounded())) m/s" } ?? "m/s",
@@ -80,17 +80,19 @@ public struct Conditions: Equatable, Sendable {
 
         // Rain chance: the likeliest hour in the next six.
         let chances = next6.compactMap { s in s.precipitationChance.map { (s, $0) } }
+        // When rain is already within the hour, the headline says so; the chip would only repeat it.
+        let wetSoon = ahead.prefix { $0.time < now.addingTimeInterval(3600) }.contains(where: \.isWet)
         if let (step, chance) = chances.max(by: { $0.1 < $1.1 }) {
-            if chance >= 30 {
+            if chance >= 30, !wetSoon {
                 let when = step.time <= now ? "now" : "at \(clock.string(from: step.time))"
                 chips.append(Chip(id: "rain", text: "Rain \(Int(chance.rounded()))%", detail: when,
                                   spoken: "\(Int(chance.rounded())) percent chance of rain \(when)"))
             }
             let range = now0.precipitationMax.map { max in
-                max > 0 ? String(format: "%.1f–%.1f mm this hour", now0.precipitationMin ?? 0, max) : "dry this hour"
+                max > 0 ? String(format: "%.1f–%.1f mm", now0.precipitationMin ?? 0, max) : "dry this hour"
             } ?? "next 6 hours"
             tiles.append(Tile(id: "rain", label: "Rain chance", value: "\(Int((now0.precipitationChance ?? chance).rounded()))%",
-                              meaning: chance >= 30 && step.time > now ? "\(Int(chance.rounded()))% at \(clock.string(from: step.time))" : range))
+                              meaning: chance >= 30 && step.time > now ? "\(Int(chance.rounded()))% by \(clock.string(from: step.time))" : range))
         }
 
         // Thunder and fog, only when they're in the picture.
@@ -100,7 +102,7 @@ public struct Conditions: Equatable, Sendable {
                                   spoken: "\(Int(chance.rounded())) percent chance of thunder", tone: .warn))
             }
             tiles.append(Tile(id: "thunder", label: "Thunder", value: "\(Int(chance.rounded()))%",
-                              meaning: "likeliest at \(clock.string(from: step.time))", tone: chance >= 20 ? .warn : .plain))
+                              meaning: "most at \(clock.string(from: step.time))", tone: chance >= 20 ? .warn : .plain))
         }
         if let fog = now0.fog, fog >= 1 {
             if fog >= 50 { chips.append(Chip(id: "fog", text: "Fog", spoken: "Fog")) }
@@ -113,8 +115,7 @@ public struct Conditions: Equatable, Sendable {
             let name = level.name.lowercased()
             chips.append(Chip(id: "air", text: "Air \(name)", spoken: "Air quality \(name), \(scale.title) \(Int(level.value.rounded()))",
                               tone: level.isPoor ? .warn : .plain, band: level.band))
-            let pm = airNow?.pm25.map { String(format: "PM2.5 %.0f µg/m³", $0) } ?? scale.title
-            tiles.append(Tile(id: "air", label: "Air", value: "\(Int(level.value.rounded()))", meaning: "\(level.name) · \(pm)",
+            tiles.append(Tile(id: "air", label: "Air", value: "\(Int(level.value.rounded()))", meaning: level.name,
                               tone: level.isPoor ? .warn : .plain, meter: level.fraction))
             note.append("air \(name)")
             if level.isBad { urgency = max(urgency, .notice) }
@@ -137,7 +138,7 @@ public struct Conditions: Equatable, Sendable {
                 note.append("UV up to \(Int(peak.rounded()))")
             }
             tiles.append(Tile(id: "uv", label: "UV", value: "\(Int(uvNow.rounded()))",
-                              meaning: "up to \(Int(peak.rounded())) at \(clock.string(from: peakStep.time))",
+                              meaning: "peak \(Int(peak.rounded())) at \(clock.string(from: peakStep.time))",
                               tone: strong ? .warn : .plain, meter: min(1, peak / 11)))
             if strong { urgency = max(urgency, .notice) }
         }
@@ -161,10 +162,10 @@ public struct Conditions: Equatable, Sendable {
             chips.append(Chip(id: "sun", text: "Sunset \(clock.string(from: d))", spoken: "Sunset at \(clock.string(from: d))"))
             let left = Int(d.timeIntervalSince(now) / 60)
             tiles.append(Tile(id: "sun", label: "Sunset", value: clock.string(from: d),
-                              meaning: left >= 60 ? "\(left / 60) h \(left % 60) min of light" : "\(left) min of light"))
+                              meaning: left >= 60 ? "\(left / 60) h \(left % 60) m left" : "\(left) min left"))
         case .rise(let d)?:
             chips.append(Chip(id: "sun", text: "Sunrise \(clock.string(from: d))", spoken: "Sunrise at \(clock.string(from: d))"))
-            tiles.append(Tile(id: "sun", label: "Sunrise", value: clock.string(from: d), meaning: "the sun is down"))
+            tiles.append(Tile(id: "sun", label: "Sunrise", value: clock.string(from: d), meaning: "sun is down"))
         case nil:
             tiles.append(Tile(id: "sun", label: "Sun", value: sunUp ? "Up" : "Down", meaning: sunUp ? "all day" : "all night"))
         }

@@ -12,7 +12,8 @@ Skyline is a native macOS menu bar weather app, app #2 in the nimbi family (Rela
 
 - Swift, SwiftUI and AppKit only. NimbiKit is the only dependency. Never add WeatherKit or third-party packages.
 - Weather data is MET Norway Locationforecast 2.0 (CC BY 4.0). Respect its terms: identifying User-Agent, cache every response, never re-request before `Expires`, send `If-Modified-Since`, at most 4 decimals in coordinates, back off on 429. "Weather data © MET Norway" stays visible in the app.
-- The app talks to the Worker proxy in `worker/` when a proxy URL is set, and to api.met.no directly otherwise (development).
+- Air quality and pollen come from CAMS via Open-Meteo's air quality API (CC BY 4.0, free tier is non-commercial only). Cache it (an hour per ~1 km cell), round the position to 2 decimals, back off on errors, and keep "Air quality © CAMS via Open-Meteo" visible whenever air data shows. Weather stays MET's.
+- The app talks to the Worker proxy in `worker/` when a proxy URL is set, and to api.met.no directly otherwise (development). The proxy covers MET only.
 - Menu bar first (LSUIElement). The notch only through `SurfaceClaim` (§18.2); weather urgency is at most `notice`, except a real storm or dangerous heat.
 
 ## Commands

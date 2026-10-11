@@ -23,9 +23,30 @@ enum Demo {
             case "clear": symbol = "clearsky_day"
             default: break
             }
-            return ForecastStep(time: hour.addingTimeInterval(Double(i) * 3600), temperature: t, windSpeed: 4,
-                                symbol: WeatherSymbol(symbol), precipitation: mm)
+            let chance = mm > 0 ? 85.0 : (sky == "rain" && i < 8 ? 40 : 5)
+            let uv = max(0, 6 * sin(Double((i + 14) % 24 - 6) / 12 * .pi)) * (sky == "clear" ? 1.4 : 1)
+            return ForecastStep(time: hour.addingTimeInterval(Double(i) * 3600), temperature: t,
+                                windSpeed: sky == "storm" ? 9 : 4, windFromDirection: 225, humidity: 72,
+                                cloudCover: sky == "clear" ? 5 : 70, symbol: WeatherSymbol(symbol), precipitation: mm)
+                .with(apparentTemperature: t - (sky == "storm" ? 5 : 2), windGust: sky == "storm" ? 18 : 9,
+                      dewPoint: t - 5, pressure: 1012 - Double(i) * (sky == "storm" ? 0.6 : 0.1),
+                      cloudLow: 20, cloudMedium: 40, cloudHigh: 70, fog: 0, uvClearSky: uv,
+                      temperatureLow: t - 1 - Double(i) / 24, temperatureHigh: t + 1 + Double(i) / 24,
+                      precipitationMin: mm * 0.5, precipitationMax: mm * 1.6, precipitationChance: chance,
+                      thunderChance: sky == "storm" && i < 4 ? 35 : 0)
         }
         return Forecast(coordinate: place.coordinate, updatedAt: now, steps: steps)
+    }
+
+    /// Good air and birch pollen in the rain and clear demos; very poor air in the storm one.
+    static func air(now: Date = Date()) -> AirQuality? {
+        guard let sky else { return nil }
+        let hour = Date(timeIntervalSince1970: (now.timeIntervalSince1970 / 3600).rounded(.down) * 3600)
+        return AirQuality(hours: (0..<48).map { i in
+            AirQuality.Hour(time: hour.addingTimeInterval(Double(i) * 3600),
+                            europeanAQI: sky == "storm" ? 86 : 18, usAQI: sky == "storm" ? 165 : 26,
+                            pm25: sky == "storm" ? 48 : 4, pm10: 9, ozone: 54, nitrogenDioxide: 3,
+                            pollen: [.birch: sky == "rain" ? 140 : 30, .grass: 3])
+        })
     }
 }

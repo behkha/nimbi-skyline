@@ -11,13 +11,21 @@ place picker, settings and About window are built, on top of the MET client, cac
 reading and moods. The choices behind them are in [docs/design-choices.md](docs/design-choices.md).
 The Worker proxy isn't deployed yet, so builds talk to api.met.no directly.
 
-Weather data © MET Norway, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+Weather data © MET Norway, under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Air quality
+and pollen: Copernicus Atmosphere Monitoring Service (CAMS) data via [Open-Meteo](https://open-meteo.com),
+CC BY 4.0.
 
 ## How it works
 
 - **Data:** [MET Norway Locationforecast 2.0](https://api.met.no/weatherapi/locationforecast/2.0/documentation),
-  the `compact` product: hourly steps for about two and a half days, then six-hourly, worldwide. Free and
-  open, no key.
+  the `complete` product: hourly steps for about two and a half days, then six-hourly, worldwide, with
+  feels-like temperature, gusts, clear-sky UV, cloud layers, fog, pressure, the 10–90% temperature range
+  and rain and thunder chances. Free and open, no key.
+- **Air quality and pollen:** CAMS through [Open-Meteo's air quality API](https://open-meteo.com/en/docs/air-quality-api),
+  hourly, cached an hour per ~1 km cell (the position is rounded to two decimals). Air quality worldwide,
+  pollen only in Europe. Open-Meteo's free API is for **non-commercial use** (under 10,000 calls a
+  day); a paid Skyline needs their subscription or CAMS directly. If it can't be reached, Skyline just
+  shows the weather.
 - **Proxy:** shipped builds talk to a small Cloudflare Worker ([`worker/`](worker/README.md)) that adds
   Skyline's User-Agent, caches by ~1 km cells until MET's `Expires`, and keeps users' IP addresses and
   exact positions away from MET. Development builds talk to `api.met.no` directly.
@@ -39,8 +47,14 @@ Weather data © MET Norway, under [CC BY 4.0](https://creativecommons.org/licens
 - **Click** for the dropdown: the cloud in its mood, the place and what the sky is doing, the next 24
   hours as a skyline (rain bars under the temperature line), and five days. **Right-click** for a short
   menu.
+- **Around the temperature:** a quiet strip of what matters now (feels like when it differs, wind when
+  it blows, rain chance, air quality, pollen in season, UV by day, the next sunrise or sunset), or, with
+  **D**, a grid with every value labelled (humidity, dew point, pressure, cloud layers, fog and thunder
+  too). The chart shades MET's 10–90% temperature range and tints hours likely to be wet. Very poor air,
+  or UV 8+ under a mostly clear sky, is a `notice`: it never changes the cloud's mood.
 - **Keys** in the dropdown: **R** asks MET again (shown only once the forecast has expired; MET's terms
-  forbid asking sooner), **L** changes place, **,** opens settings, **esc** goes back or closes.
+  forbid asking sooner), **L** changes place, **D** more or less detail, **,** opens settings (theme,
+  text size, detail, European or US air index), **esc** goes back or closes.
 - **Place:** follow the Mac (Location Services) or pick a city. Settings also hold the theme (Dark,
   Black) and the text size.
 - **The notch:** shared by every nimbi app, one at a time (DESIGN.md 18.2). Skyline never takes it on
@@ -113,10 +127,11 @@ swift run Skyline --fetch 59.9139 10.7522
 - `Sources/SkylineCore` — everything that isn't a view: `METClient` and its cache, the compact JSON
   models, `SkyReport` (rain now / soon / later, hazards, five days, the headline), `HourlyOutlook` (the
   chart's hours and its spoken summary), `IslandPage` (the notch page: glance, title, subtitle, bars),
-  `Sun`, `SkyMood`, `LocationService`.
+  `Conditions` (the strip, the grid and their urgency), `AirQuality` and `AirClient`, `Sun` (position,
+  sunrise and sunset), `SkyMood`, `LocationService`.
 - `Sources/Skyline` — the app: `SkyModel` (fetches at `Expires`, re-reads the cache every 30 s),
   `MenuBarItem` (the template glyph), `Dropdown` (the panel and its keys), `ForecastView` and
-  `SkylineChart`, `PlacePicker`, `SettingsView` (with the notch switch), `Island` (Skyline at the
+  `SkylineChart`, `ConditionsView` (strip and grid), `PlacePicker`, `SettingsView` (with the notch switch), `Island` (Skyline at the
   notch), `About`, `Demo`.
 - `Tests/SkylineCoreTests` — Swift Testing suites with scripted HTTP answers and a movable clock.
 - `scripts/` — `build.sh`, `make-icon.swift` (the app icon, drawn procedurally).

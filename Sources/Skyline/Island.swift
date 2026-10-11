@@ -53,6 +53,7 @@ final class IslandController: NSObject {
     private var openTimer: Timer?
     private var closeTimer: Timer?
     private var keyMonitor: Any?
+    private var moveMonitors: [Any] = []
     private var hovering = false
 
     /// Forecast ↩ and Place L: open Skyline's dropdown hanging from the island.
@@ -101,10 +102,12 @@ final class IslandController: NSObject {
             state.height = height
             place()
             window.orderFrontRegardless()
+            watchMoves(true)
             onShown?(true)
         } else {
             setMode(.closed, animated: false)
             window.orderOut(nil)
+            watchMoves(false)
             onShown?(false)
         }
     }
@@ -139,6 +142,24 @@ final class IslandController: NSObject {
     }
 
     private var pointerInside: Bool { window.frame.contains(NSEvent.mouseLocation) }
+
+    /// A freshly shown island's tracking area doesn't always report the first entry, so pointer
+    /// moves over the closed island count as hovering too. Mouse moves need no permission.
+    private func watchMoves(_ on: Bool) {
+        moveMonitors.forEach(NSEvent.removeMonitor)
+        moveMonitors = []
+        guard on else { return }
+        let check: (NSEvent) -> Void = { [weak self] _ in
+            Task { @MainActor in
+                guard let self, self.state.mode == .closed, self.openTimer?.isValid != true, self.pointerInside else { return }
+                self.hover(true)
+            }
+        }
+        if let global = NSEvent.addGlobalMonitorForEvents(matching: .mouseMoved, handler: check) { moveMonitors.append(global) }
+        if let local = NSEvent.addLocalMonitorForEvents(matching: .mouseMoved, handler: { check($0); return $0 }) {
+            moveMonitors.append(local)
+        }
+    }
 
     /// While open, checks the pointer ten times a second and closes once it has been away 0.6 s.
     private func watchPointer() {
@@ -311,7 +332,8 @@ struct IslandView: View {
 
     private var page: IslandPage? {
         model.report.map {
-            IslandPage(report: $0, outlook: model.outlook, urgency: model.mood.urgency, timeZone: model.timeZone)
+            IslandPage(report: $0, outlook: model.outlook, urgency: model.urgency, timeZone: model.timeZone,
+                       note: model.conditions.note)
         }
     }
 

@@ -7,12 +7,16 @@ import SwiftUI
 struct ForecastView: View {
     @ObservedObject var model: SkyModel
     @ObservedObject var location: LocationService
+    var style: ConditionsStyle
     var actions: PanelActions
     @ObservedObject private var look = NimbiAppearance.shared
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             header
+            if model.report != nil, !model.conditions.chips.isEmpty || !model.conditions.tiles.isEmpty {
+                ConditionsView(conditions: model.conditions, style: style)
+            }
             if let report = model.report {
                 SkylineChart(outlook: model.outlook, timeZone: model.timeZone)
                 if !report.days.isEmpty { days(report.days) }
@@ -111,6 +115,12 @@ struct ForecastView: View {
                 .buttonStyle(PillButtonStyle(hint: true))
                 .focusable(false)
                 .help("Change place · L")
+            if model.report != nil, !model.conditions.tiles.isEmpty {
+                Button(action: actions.toggleDetails) { label(style == .strip ? "More" : "Less", key: "D") }
+                    .buttonStyle(PillButtonStyle(hint: true))
+                    .focusable(false)
+                    .help(style == .strip ? "Every detail · D" : "Only what matters · D")
+            }
             Spacer(minLength: 0)
             Button(action: actions.openSettings) { label("Settings", key: ",") }
                 .buttonStyle(PillButtonStyle(hint: true))
@@ -127,16 +137,24 @@ struct ForecastView: View {
     }
 
     private var footer: some View {
-        HStack(spacing: 8) {
-            Link("Weather data © MET Norway", destination: URL(string: "https://www.met.no/en")!)
-                .foregroundStyle(Nimbi.Text.dim)
-                .help("MET Norway's Locationforecast, CC BY 4.0")
-                .focusable(false)
-            Spacer(minLength: 0)
-            if let fetchedAt = model.fetchedAt {
-                Text("Updated \(Clock.moment(fetchedAt, in: .current))")
-                    .foregroundStyle(Nimbi.Text.faint)
-                    .monospacedDigit()
+        VStack(alignment: .leading, spacing: 3) {
+            HStack(spacing: 8) {
+                Link("Weather data © MET Norway", destination: URL(string: "https://www.met.no/en")!)
+                    .foregroundStyle(Nimbi.Text.dim)
+                    .help("MET Norway's Locationforecast, CC BY 4.0")
+                    .focusable(false)
+                Spacer(minLength: 0)
+                if let fetchedAt = model.fetchedAt {
+                    Text("Updated \(Clock.moment(fetchedAt, in: .current))")
+                        .foregroundStyle(Nimbi.Text.faint)
+                        .monospacedDigit()
+                }
+            }
+            if model.air != nil {
+                Link("Air quality © CAMS via Open-Meteo", destination: URL(string: "https://open-meteo.com/en/docs/air-quality-api")!)
+                    .foregroundStyle(Nimbi.Text.dim)
+                    .help("Copernicus Atmosphere Monitoring Service data through Open-Meteo.com, CC BY 4.0")
+                    .focusable(false)
             }
         }
         .font(look.font(10))

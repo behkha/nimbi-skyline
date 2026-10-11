@@ -12,6 +12,8 @@ struct PanelActions {
     var back: () -> Void
     var choose: (Place) -> Void
     var about: () -> Void
+    /// D: the conditions strip or the grid.
+    var toggleDetails: () -> Void
 }
 
 @MainActor
@@ -22,6 +24,9 @@ final class PanelState: ObservableObject {
     @Published var hanging = false
     /// While hanging: at least as wide as the island, so the two read as one piece.
     @Published var minWidth: CGFloat = 0
+    @Published var conditionsStyle = ConditionsStyle.saved {
+        didSet { UserDefaults.standard.set(conditionsStyle.rawValue, forKey: ConditionsStyle.key) }
+    }
 }
 
 /// Borderless panel that takes keys without making Skyline the active app.
@@ -74,7 +79,8 @@ final class Dropdown: NSObject, NSWindowDelegate {
             openSettings: { [weak self] in self?.show(.settings) },
             back: { [weak self] in self?.back() },
             choose: { [weak self] place in self?.choose(place) },
-            about: { [weak self] in self?.close(); self?.onAbout?() }
+            about: { [weak self] in self?.close(); self?.onAbout?() },
+            toggleDetails: { [weak self] in self?.toggleDetails() }
         )
         host = SizeReportingHostingView(rootView: AnyView(
             DropdownRoot(state: state, model: model, location: model.location, search: search,
@@ -139,6 +145,10 @@ final class Dropdown: NSObject, NSWindowDelegate {
         withAnimation(Nimbi.Motion.swap) { state.page = page }
     }
 
+    private func toggleDetails() {
+        withAnimation(Nimbi.Motion.swap) { state.conditionsStyle = state.conditionsStyle.other }
+    }
+
     private func back() {
         if state.page == .forecast { close() } else { show(.forecast) }
     }
@@ -189,7 +199,7 @@ final class Dropdown: NSObject, NSWindowDelegate {
     }
 
     private enum Key {
-        static let r: UInt16 = 15, l: UInt16 = 37, comma: UInt16 = 43, q: UInt16 = 12
+        static let r: UInt16 = 15, l: UInt16 = 37, comma: UInt16 = 43, q: UInt16 = 12, d: UInt16 = 2
         static let esc: UInt16 = 53, down: UInt16 = 125, up: UInt16 = 126
     }
 
@@ -207,6 +217,7 @@ final class Dropdown: NSObject, NSWindowDelegate {
         case .forecast, .settings:
             switch event.keyCode {
             case Key.r where state.page == .forecast: model.refresh(); return true
+            case Key.d where state.page == .forecast: toggleDetails(); return true
             case Key.l: show(.place); return true
             case Key.comma: show(.settings); return true
             default: return false
@@ -246,9 +257,9 @@ struct DropdownRoot: View {
 
     @ViewBuilder private var page: some View {
         switch state.page {
-        case .forecast: ForecastView(model: model, location: location, actions: actions)
+        case .forecast: ForecastView(model: model, location: location, style: state.conditionsStyle, actions: actions)
         case .place: PlacePicker(location: location, search: search, actions: actions)
-        case .settings: SettingsView(location: location, notch: notch, actions: actions)
+        case .settings: SettingsView(location: location, model: model, panel: state, notch: notch, actions: actions)
         }
     }
 }

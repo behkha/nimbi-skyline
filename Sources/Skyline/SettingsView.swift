@@ -70,6 +70,8 @@ final class NotchWatch: ObservableObject {
 /// `,`: the settings menu (DESIGN.md 8): header, grouped rows in a well, then plain rows.
 struct SettingsView: View {
     @ObservedObject var location: LocationService
+    @ObservedObject var model: SkyModel
+    @ObservedObject var panel: PanelState
     @ObservedObject var notch: NotchWatch
     var actions: PanelActions
     @ObservedObject private var look = NimbiAppearance.shared
@@ -102,6 +104,14 @@ struct SettingsView: View {
                     let scales = LookSettings.textScales
                     let i = scales.firstIndex(of: look.textScale) ?? 1
                     LookSettings.setTextScale(scales[(i + 1) % scales.count])
+                }
+                divider
+                SettingsRow(icon: "square.grid.3x2", title: "Details", value: panel.conditionsStyle == .strip ? "What matters" : "Everything") {
+                    panel.conditionsStyle = panel.conditionsStyle.other
+                }
+                divider
+                SettingsRow(icon: "aqi.medium", title: "Air index", value: model.airScale.title) {
+                    model.airScale = model.airScale == .european ? .us : .european
                 }
             }
             .background(RoundedRectangle(cornerRadius: Nimbi.Radius.group, style: .continuous).fill(Nimbi.Surface.well))

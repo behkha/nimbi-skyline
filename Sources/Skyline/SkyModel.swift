@@ -22,18 +22,33 @@ final class SkyModel: ObservableObject {
     @Published private(set) var isFetching = false
     /// Set when the last attempt failed and there's nothing to show instead.
     @Published private(set) var failed = false
+    /// Air quality and pollen (CAMS via Open-Meteo), when it has answered.
+    @Published private(set) var air: AirQuality?
+    /// The strip, the grid and their urgency, read for this minute.
+    @Published private(set) var conditions = Conditions(chips: [], tiles: [], urgency: .none, note: nil)
+    /// European or US air quality index (Settings).
+    @Published var airScale: AirScale {
+        didSet { UserDefaults.standard.set(airScale.rawValue, forKey: "AirScale"); reread() }
+    }
+
+    /// How loudly Skyline may ask for attention now: the sky's urgency, or a notice for very
+    /// poor air or strong UV. The cloud's mood stays the sky's alone.
+    var urgency: Urgency { max(mood.urgency, conditions.urgency) }
 
     let location: LocationService
     private let client: METClient
+    private let airClient: AirClient
     private var forecast: Forecast?
     private var tracker = SkyMoodTracker()
     private var loop: Task<Void, Never>?
     private var ticker: Timer?
     private var bag: Set<AnyCancellable> = []
 
-    init(location: LocationService? = nil, client: METClient = METClient()) {
+    init(location: LocationService? = nil, client: METClient = METClient(), airClient: AirClient = AirClient()) {
         self.location = location ?? LocationService()
         self.client = client
+        self.airClient = airClient
+        airScale = UserDefaults.standard.string(forKey: "AirScale").flatMap(AirScale.init(rawValue:)) ?? .forRegion
     }
 
     var timeZone: TimeZone { place?.timeZone ?? .current }
@@ -42,6 +57,7 @@ final class SkyModel: ObservableObject {
         if let demo = Demo.forecast() {
             place = Demo.place
             forecast = demo
+            air = Demo.air()
             fetchedAt = Date()
             nextRefresh = Date().addingTimeInterval(30 * 60)
             reread()
@@ -54,6 +70,7 @@ final class SkyModel: ObservableObject {
             // A new name for the same spot (the city found after a GPS fix) needs no new forecast.
             guard moved else { return }
             self.forecast = nil
+            self.air = nil
             self.fetchedAt = nil
             self.reread()
             self.restartLoop()
@@ -81,7 +98,10 @@ final class SkyModel: ObservableObject {
             while !Task.isCancelled {
                 guard let self else { return }
                 await self.fetch(place)
-                let next = self.nextRefresh ?? Date().addingTimeInterval(600)
+                await self.fetchAir(place)
+                // Next allowed request for either source, never sooner.
+                let air = await self.airClient.nextRefresh(for: place.coordinate)
+                let next = [self.nextRefresh, air].compactMap { $0 }.min() ?? Date().addingTimeInterval(600)
                 let wait = max(60, next.timeIntervalSinceNow + 5)
                 try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
             }
@@ -105,6 +125,14 @@ final class SkyModel: ObservableObject {
         reread()
     }
 
+    /// Air quality is a nice-to-have: when CAMS can't be reached the strip just goes without it.
+    private func fetchAir(_ place: Place) async {
+        guard let result = try? await airClient.air(for: place.coordinate),
+              place.coordinate == self.place?.coordinate else { return }
+        air = result.air
+        reread()
+    }
+
     /// Reads the cached forecast for this moment.
     private func reread() {
         let now = Date()
@@ -115,6 +143,9 @@ final class SkyModel: ObservableObject {
         if newMood != mood { mood = newMood }
         let newOutlook = forecast.map { HourlyOutlook(forecast: $0, now: now) } ?? HourlyOutlook(hours: [])
         if newOutlook != outlook { outlook = newOutlook }
+        let newConditions = forecast.map { Conditions(forecast: $0, now: now, timeZone: timeZone, air: air, scale: airScale) }
+            ?? Conditions(chips: [], tiles: [], urgency: .none, note: nil)
+        if newConditions != conditions { conditions = newConditions }
         let allowed = !isFetching && place != nil && (nextRefresh.map { now >= $0 } ?? true)
         if allowed != canRefresh { canRefresh = allowed }
         // "Rain just stopped" is a short happy moment; come back when it's over.
