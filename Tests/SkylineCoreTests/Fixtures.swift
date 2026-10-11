@@ -12,6 +12,10 @@ enum Fixture {
         var wind: Double = 3
         var symbol = "cloudy"
         var precipitation = 0.0
+        /// Extra `instant.details` from the complete product, by MET's key.
+        var instant: [String: Double] = [:]
+        /// Extra `next_1_hours.details`, by MET's key.
+        var details: [String: Double] = [:]
     }
 
     static func json(hours: [Hour], start: Date = t0, sixHourly: Int = 0,
@@ -36,10 +40,14 @@ enum Fixture {
     }
 
     private static func step(time: String, hour h: Hour, key: String) -> String {
-        """
-        {"time":"\(time)","data":{"instant":{"details":{"air_pressure_at_sea_level":1012.3,"air_temperature":\(h.temperature),
-          "cloud_area_fraction":80.1,"relative_humidity":71.2,"wind_from_direction":210.4,"wind_speed":\(h.wind)}},
-          "\(key)":{"summary":{"symbol_code":"\(h.symbol)"},"details":{"precipitation_amount":\(h.precipitation)}}}}
+        let instant = h.instant.map { ",\"\($0.key)\":\($0.value)" }.joined()
+        let details = h.details.map { ",\"\($0.key)\":\($0.value)" }.joined()
+        let pressure = h.instant["air_pressure_at_sea_level"] == nil ? "\"air_pressure_at_sea_level\":1012.3," : ""
+        let cloud = h.instant["cloud_area_fraction"] == nil ? "\"cloud_area_fraction\":80.1," : ""
+        return """
+        {"time":"\(time)","data":{"instant":{"details":{\(pressure)\(cloud)"air_temperature":\(h.temperature),
+          "relative_humidity":71.2,"wind_from_direction":210.4,"wind_speed":\(h.wind)\(instant)}},
+          "\(key)":{"summary":{"symbol_code":"\(h.symbol)"},"details":{"precipitation_amount":\(h.precipitation)\(details)}}}}
         """
     }
 

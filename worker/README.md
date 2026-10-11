@@ -7,7 +7,7 @@ of service.
 It serves the same path and query as `api.met.no`:
 
 ```
-GET {base}/weatherapi/locationforecast/2.0/compact?lat=<lat>&lon=<lon>[&altitude=<m>]
+GET {base}/weatherapi/locationforecast/2.0/complete?lat=<lat>&lon=<lon>[&altitude=<m>]
 ```
 
 So the app only changes its base URL. Everything else stays the same.
@@ -92,14 +92,14 @@ The tests use Node's built-in test runner. They do not need wrangler.
 
 Set the app's proxy base URL setting to the deployed URL, for example
 `https://skyline-proxy.<account>.workers.dev`. Leave off the trailing slash and
-the path. The app adds `/weatherapi/locationforecast/2.0/compact` itself.
+the path. The app adds `/weatherapi/locationforecast/2.0/complete` itself.
 
 ## Check it
 
 Run this twice:
 
 ```
-curl -i "$URL/weatherapi/locationforecast/2.0/compact?lat=59.91&lon=10.75"
+curl -i "$URL/weatherapi/locationforecast/2.0/complete?lat=59.91&lon=10.75"
 ```
 
 The first answer should show `X-Skyline-Cache: MISS`. The second should show

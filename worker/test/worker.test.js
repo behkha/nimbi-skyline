@@ -38,7 +38,7 @@ async function call(path, init = {}) {
   await c.done();
   return res;
 }
-const P = '/weatherapi/locationforecast/2.0/compact';
+const P = '/weatherapi/locationforecast/2.0/complete';
 const inFuture = (s) => new Date(Date.now() + s * 1000).toUTCString();
 const LM = 'Thu, 01 Jan 2026 00:00:00 GMT';
 const ok = (expires, body = '{"ok":1}') =>

@@ -30,6 +30,20 @@ Both open questions were answered with the recommended option, and both are now 
   the closed island's wings are 60 pt, not 76, because the closed island hides the menu bar items
   under it; and the open island is the notch plus 160 pt (about 200), not 222, because one page needs no dots.
 
+## Air, sun and UV (11 Oct 2026)
+
+Options in the private artifact <https://claude.ai/artifact/WMqNogkLmHXxqRS2wgBGc4> (copy in
+`docs/air-and-sun-options.html`).
+
+| Decision | Chosen |
+|---|---|
+| Layout | **A and B, with a toggle.** The quiet strip (only what matters now) by default; the grid of tiles (every value, labelled) one key away, D, and the choice is remembered. |
+| Weather extras | **Everything MET's `complete` product has:** feels like, wind and gusts, rain chance, UV (clear sky), humidity and dew point, pressure, cloud layers, fog, thunder chance, and the 10–90% temperature range (a band round the chart's line). |
+| Air and pollen | **CAMS via Open-Meteo.** Air quality worldwide, pollen in Europe only. Free API, CC BY 4.0, non-commercial use only; a paid Skyline would need their subscription or CAMS directly. |
+| Nudges | **Notice for bad days:** air "Very poor" or worse, or UV 8+ under a mostly clear sky. Never `needsYou`, never the cloud's mood. |
+
+Sunrise and sunset are always there, worked out locally.
+
 ## Mood mapping
 
 See the Moods section of the [README](../README.md#moods).

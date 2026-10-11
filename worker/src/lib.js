@@ -1,7 +1,7 @@
 // Pure helpers for the Skyline proxy. Nothing here touches the Workers
 // runtime (no caches, no fetch), so it runs under plain Node for tests.
 
-export const FORECAST_PATH = '/weatherapi/locationforecast/2.0/compact';
+export const FORECAST_PATH = '/weatherapi/locationforecast/2.0/complete';
 export const UPSTREAM_ORIGIN = 'https://api.met.no';
 export const DEFAULT_USER_AGENT =
   'Skyline-proxy/0.1 github.com/behkha/nimbi-skyline behzadkhanlar@gmail.com';

@@ -29,7 +29,7 @@ public struct METConfiguration: Equatable, Sendable {
 
     public func forecastURL(for coordinate: Coordinate, altitude: Int? = nil) -> URL {
         let point = coordinate.truncated()
-        var components = URLComponents(url: baseURL.appendingPathComponent("weatherapi/locationforecast/2.0/compact"),
+        var components = URLComponents(url: baseURL.appendingPathComponent("weatherapi/locationforecast/2.0/complete"),
                                        resolvingAgainstBaseURL: false)!
         components.queryItems = [URLQueryItem(name: "lat", value: Coordinate.format(point.latitude)),
                                  URLQueryItem(name: "lon", value: Coordinate.format(point.longitude))]
@@ -90,7 +90,7 @@ public struct ForecastResult: Sendable {
     public var fetchedAt: Date
 }
 
-/// Fetches Locationforecast 2.0 compact the way MET's terms ask: one identifying User-Agent,
+/// Fetches Locationforecast 2.0 complete the way MET's terms ask: one identifying User-Agent,
 /// coordinates truncated to 4 decimals, every response cached until its `Expires`, conditional
 /// requests with `If-Modified-Since`, and backing off on 429 and server errors.
 public actor METClient {

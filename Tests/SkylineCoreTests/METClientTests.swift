@@ -18,13 +18,13 @@ import Testing
 
     @Test func requestURLCarriesAtMostFourDecimals() {
         let url = METConfiguration.direct.forecastURL(for: Coordinate(latitude: 59.913_987_6, longitude: 10.752_291))
-        #expect(url.absoluteString == "https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=59.9139&lon=10.7522")
+        #expect(url.absoluteString == "https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=59.9139&lon=10.7522")
     }
 
     @Test func proxyKeepsTheSamePath() {
         let proxy = METConfiguration(baseURL: URL(string: "https://skyline-proxy.example.workers.dev")!)
         let url = proxy.forecastURL(for: Fixture.oslo)
-        #expect(url.absoluteString == "https://skyline-proxy.example.workers.dev/weatherapi/locationforecast/2.0/compact?lat=59.9139&lon=10.7522")
+        #expect(url.absoluteString == "https://skyline-proxy.example.workers.dev/weatherapi/locationforecast/2.0/complete?lat=59.9139&lon=10.7522")
     }
 
     @Test func distanceIsRoughlyRight() {

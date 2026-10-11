@@ -33,6 +33,32 @@ public struct ForecastStep: Equatable, Sendable {
     /// Length of the period `symbol` and `precipitation` describe: 1 h, or 6 h further out.
     public var period: TimeInterval
 
+    // From MET's `complete` product; nil when a response (or an older cache) lacks them.
+    /// °C, what it feels like with wind and humidity.
+    public var apparentTemperature: Double?
+    /// m/s, the strongest gust.
+    public var windGust: Double?
+    public var dewPoint: Double?
+    /// hPa at sea level.
+    public var pressure: Double?
+    /// Cloud cover by layer, %.
+    public var cloudLow: Double?
+    public var cloudMedium: Double?
+    public var cloudHigh: Double?
+    /// Fog cover, %.
+    public var fog: Double?
+    /// UV index if the sky were clear. MET gives no cloudy-sky UV.
+    public var uvClearSky: Double?
+    /// The 10th and 90th percentile of the temperature: how sure MET is.
+    public var temperatureLow: Double?
+    public var temperatureHigh: Double?
+    /// mm over the period: the likely range.
+    public var precipitationMin: Double?
+    public var precipitationMax: Double?
+    /// % chance of rain (or snow), and of thunder, over the period.
+    public var precipitationChance: Double?
+    public var thunderChance: Double?
+
     public init(time: Date, temperature: Double, windSpeed: Double? = nil, windFromDirection: Double? = nil,
                 humidity: Double? = nil, cloudCover: Double? = nil, symbol: WeatherSymbol? = nil,
                 precipitation: Double? = nil, period: TimeInterval = 3600) {
@@ -45,6 +71,32 @@ public struct ForecastStep: Equatable, Sendable {
         self.symbol = symbol
         self.precipitation = precipitation
         self.period = period
+    }
+
+    /// Fills in the `complete` product's extras.
+    public func with(apparentTemperature: Double? = nil, windGust: Double? = nil, dewPoint: Double? = nil,
+                     pressure: Double? = nil, cloudLow: Double? = nil, cloudMedium: Double? = nil,
+                     cloudHigh: Double? = nil, fog: Double? = nil, uvClearSky: Double? = nil,
+                     temperatureLow: Double? = nil, temperatureHigh: Double? = nil,
+                     precipitationMin: Double? = nil, precipitationMax: Double? = nil,
+                     precipitationChance: Double? = nil, thunderChance: Double? = nil) -> ForecastStep {
+        var s = self
+        s.apparentTemperature = apparentTemperature
+        s.windGust = windGust
+        s.dewPoint = dewPoint
+        s.pressure = pressure
+        s.cloudLow = cloudLow
+        s.cloudMedium = cloudMedium
+        s.cloudHigh = cloudHigh
+        s.fog = fog
+        s.uvClearSky = uvClearSky
+        s.temperatureLow = temperatureLow
+        s.temperatureHigh = temperatureHigh
+        s.precipitationMin = precipitationMin
+        s.precipitationMax = precipitationMax
+        s.precipitationChance = precipitationChance
+        s.thunderChance = thunderChance
+        return s
     }
 
     public var end: Date { time.addingTimeInterval(period) }
@@ -103,7 +155,9 @@ public struct WeatherSymbol: Hashable, Sendable {
 
 // MARK: - MET compact JSON
 
-/// The `compact` response of Locationforecast 2.0, only the fields Skyline reads.
+/// The `complete` response of Locationforecast 2.0 (a superset of `compact`), only the fields
+/// Skyline reads. Everything past the compact fields is optional, so old cached compact bodies
+/// still decode.
 struct METCompact: Decodable {
     struct Geometry: Decodable { var coordinates: [Double] }
     struct Properties: Decodable {
@@ -123,10 +177,27 @@ struct METCompact: Decodable {
             var windFromDirection: Double?
             var relativeHumidity: Double?
             var cloudAreaFraction: Double?
+            var apparentAirTemperature: Double?
+            var windSpeedOfGust: Double?
+            var dewPointTemperature: Double?
+            var airPressureAtSeaLevel: Double?
+            var cloudAreaFractionLow: Double?
+            var cloudAreaFractionMedium: Double?
+            var cloudAreaFractionHigh: Double?
+            var fogAreaFraction: Double?
+            var ultravioletIndexClearSky: Double?
+            var airTemperaturePercentile10: Double?
+            var airTemperaturePercentile90: Double?
         }
         struct Period: Decodable {
             struct Summary: Decodable { var symbolCode: String }
-            struct Details: Decodable { var precipitationAmount: Double? }
+            struct Details: Decodable {
+                var precipitationAmount: Double?
+                var precipitationAmountMin: Double?
+                var precipitationAmountMax: Double?
+                var probabilityOfPrecipitation: Double?
+                var probabilityOfThunder: Double?
+            }
             var summary: Summary?
             var details: Details?
         }
@@ -158,15 +229,24 @@ extension Forecast {
             else if let p = d.next6Hours { period = p; length = 6 * 3600 }
             else if let p = d.next12Hours { period = p; length = 12 * 3600 }
             else { period = nil; length = 3600 }
+            let i = d.instant.details, p = period?.details
             return ForecastStep(time: step.time,
                                 temperature: temperature,
-                                windSpeed: d.instant.details.windSpeed,
-                                windFromDirection: d.instant.details.windFromDirection,
-                                humidity: d.instant.details.relativeHumidity,
-                                cloudCover: d.instant.details.cloudAreaFraction,
+                                windSpeed: i.windSpeed,
+                                windFromDirection: i.windFromDirection,
+                                humidity: i.relativeHumidity,
+                                cloudCover: i.cloudAreaFraction,
                                 symbol: period?.summary.map { WeatherSymbol($0.symbolCode) },
-                                precipitation: period?.details?.precipitationAmount,
+                                precipitation: p?.precipitationAmount,
                                 period: length)
+                .with(apparentTemperature: i.apparentAirTemperature, windGust: i.windSpeedOfGust,
+                      dewPoint: i.dewPointTemperature, pressure: i.airPressureAtSeaLevel,
+                      cloudLow: i.cloudAreaFractionLow, cloudMedium: i.cloudAreaFractionMedium,
+                      cloudHigh: i.cloudAreaFractionHigh, fog: i.fogAreaFraction,
+                      uvClearSky: i.ultravioletIndexClearSky,
+                      temperatureLow: i.airTemperaturePercentile10, temperatureHigh: i.airTemperaturePercentile90,
+                      precipitationMin: p?.precipitationAmountMin, precipitationMax: p?.precipitationAmountMax,
+                      precipitationChance: p?.probabilityOfPrecipitation, thunderChance: p?.probabilityOfThunder)
         }
         return Forecast(coordinate: coordinate, updatedAt: compact.properties.meta.updatedAt,
                         steps: steps.sorted { $0.time < $1.time })

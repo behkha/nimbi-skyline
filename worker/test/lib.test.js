@@ -56,7 +56,7 @@ test('canonical query is sorted and normalized so equivalent requests share a ke
   assert.equal(cacheKeyUrl('https://x.dev', a), cacheKeyUrl('https://x.dev', b));
   assert.equal(
     upstreamUrl(q('lat=59.91&lon=10.75')),
-    'https://api.met.no/weatherapi/locationforecast/2.0/compact?lat=59.91&lon=10.75',
+    'https://api.met.no/weatherapi/locationforecast/2.0/complete?lat=59.91&lon=10.75',
   );
 });
 
