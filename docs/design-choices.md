@@ -57,6 +57,17 @@ recommended options chosen.
 | The cloud | **Peeking from the bottom-right corner**, big and cropped, in its mood, eyes on the cursor. Replaces the header cloud. |
 | Temperature | **Flat white.** No gradient on text. |
 
+## The cloud and the weather (11 Oct 2026)
+
+Options in the private artifact <https://claude.ai/artifact/SFcBihmh39TxFwCu3kmnc1> (copy in
+`docs/morph-options.html`), a live comparison of three approaches.
+
+| Decision | Chosen |
+|---|---|
+| Approach | **B · Weather around the cloud.** The cloud stays the cloud (DESIGN.md 3.5); the weather appears around it: a sun behind it, a moon and stars at night, rain, snow or sleet falling past it, a bolt beside it, fog bands, wind streaks, heat shimmer. Not chosen: A (the cloud becomes a sun, raindrop, bolt…), C (morph, then come home). |
+| Menu bar glyph | **Stays the cloud**, with drizzle marks and the amber dot as before. |
+| Where | **NimbiKit**, `NimbiCloud(weather:)` with `CloudWeather` (0.4.0). Skyline maps the sky onto it in `SkyReport.cloudWeather`: thunder, then what's falling now, heat by day, fog, wind, then the sky (sun, partly cloudy, moon). A picked day shows its own weather. |
+
 ## Mood mapping
 
 See the Moods section of the [README](../README.md#moods).

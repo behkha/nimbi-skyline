@@ -1,0 +1,337 @@
+<title>Skyline Shape-shifter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one weather picker drives three live canvases (the three approaches), then the full form catalogue, then the glyph row and the smaller choices. */
+:root {
+  --page: #07070A; --void: #000; --panel: #141414; --line: rgba(255,255,255,.07); --rim: rgba(255,255,255,.09);
+  --text: #FFFFFF; --strong: rgba(255,255,255,.88); --dim: rgba(255,255,255,.6); --faint: rgba(255,255,255,.42);
+  --sky: #7FD0FF; --lavender: #B9B4FF; --blush: #F3B6EC; --amber: #F2B33D; --done: #30D158;
+  --display: 'Fredoka', ui-rounded, system-ui, sans-serif;
+  --body: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--text); font-family: var(--body); margin: 0; padding-inline: 20px; padding-block: 40px 80px; line-height: 1.5; }
+.wrap { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 52px; }
+h1 { font-family: var(--display); font-weight: 600; font-size: clamp(30px, 5vw, 48px); letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 500; font-size: 26px; margin: 0; }
+h3 { font-size: 15px; margin: 0; font-weight: 600; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+p { margin: 0; color: var(--dim); max-width: 72ch; }
+.lead { font-size: 16px; color: var(--strong); }
+.intro, .dhead { display: flex; flex-direction: column; gap: 10px; }
+.picker { display: flex; flex-wrap: wrap; gap: 6px; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2; padding: 10px 0; background: linear-gradient(var(--page) 75%, transparent); }
+.picker button { font: 500 12.5px var(--body); color: var(--strong); background: rgba(255,255,255,.07); border: 1px solid transparent; border-radius: 99px; padding: 6px 12px; cursor: pointer; }
+.picker button:hover { background: rgba(255,255,255,.12); }
+.picker button[aria-pressed="true"] { background: #fff; color: #000; }
+.picker button:focus-visible { outline: 2px solid #B07CFF; outline-offset: 2px; }
+.options { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+.opt { display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 20px; border: 1px solid var(--line); background: rgba(255,255,255,.02); min-width: 0; }
+.opt.rec { border-color: rgba(242,179,61,.45); }
+.opt-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.rec-chip { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 99px; background: rgba(242,179,61,.14); color: var(--amber); }
+.stage { position: relative; border-radius: 16px; background: radial-gradient(90% 90% at 50% 40%, #111116, #000 75%); aspect-ratio: 1 / 1; max-width: 100%; overflow: hidden; }
+.stage canvas { width: 100%; height: 100%; display: block; }
+.caption { position: absolute; left: 12px; bottom: 10px; font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.pros { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--dim); }
+.pros li { padding-left: 18px; position: relative; }
+.pros li::before { position: absolute; left: 0; font-weight: 700; }
+.pros .good::before { content: "+"; color: var(--done); }
+.pros .bad::before { content: "–"; color: #FF6961; }
+.catalogue { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+.form { display: flex; flex-direction: column; gap: 6px; padding: 10px; border-radius: 16px; background: var(--panel); border: .75px solid var(--rim); cursor: pointer; text-align: left; color: inherit; font: inherit; }
+.form:hover { border-color: rgba(255,255,255,.2); }
+.form:focus-visible { outline: 2px solid #B07CFF; outline-offset: 2px; }
+.form canvas { width: 100%; aspect-ratio: 1/1; border-radius: 10px; background: #000; }
+.form b { font-size: 13px; }
+.form span { font-size: 11.5px; color: var(--dim); line-height: 1.35; }
+.glyphs { display: flex; flex-wrap: wrap; gap: 10px; }
+.mb { display: flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 7px; background: #1E1E24; font: 500 13px var(--body); font-variant-numeric: tabular-nums; }
+.mb.light { background: #E9E9EE; color: #111; }
+.decide { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.box { background: var(--panel); border: .75px solid var(--rim); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 6px; }
+.box .ans { font-size: 13.5px; color: var(--strong); }
+.box .alt { font-size: 12.5px; color: var(--faint); }
+.note { font-size: 13px; color: var(--dim); border-left: 2px solid var(--amber); padding-left: 12px; max-width: 80ch; }
+@media (prefers-reduced-motion: reduce) { .picker { position: static; } }
+</style>
+
+<div class="wrap">
+  <header class="intro">
+    <div class="eyebrow">Skyline · the shape-shifting cloud · options · 11 Oct 2026</div>
+    <h1>The cloud becomes the weather</h1>
+    <p class="lead">Sun when it's sunny, a raindrop in the rain, a bolt in a thunderstorm, a snowflake, a crescent moon at night. The face, the eyes and the aurora skin stay, so it's always the same little cloud, only in a different shape. Pick a weather and watch the three approaches below.</p>
+    <p class="note">DESIGN.md 3.5 and 16 say the cloud's outline stays unchanged in every app. Any of these needs a new line there: "Skyline's cloud may take the weather's shape; skin, face, eyes, moods and gaze stay."</p>
+  </header>
+
+  <nav class="picker" aria-label="Weather" id="picker"></nav>
+
+  <section class="options" aria-label="Three approaches">
+    <div class="opt rec">
+      <div class="opt-head"><h3>A · Shape-shifter</h3><span class="rec-chip">Recommended</span></div>
+      <div class="stage"><canvas id="cA" width="560" height="560" role="img" aria-label="Approach A: the cloud fully becomes the weather's shape"></canvas><span class="caption" id="capA"></span></div>
+      <ul class="pros">
+        <li class="good">The weather at a glance, from across the room: you see a raindrop, not a cloud with drops.</li>
+        <li class="good">Every change of weather is a little show (a spring morph, about 0.6 s).</li>
+        <li class="bad">The furthest from the family's cloud; Skyline looks least like Relay.</li>
+      </ul>
+    </div>
+    <div class="opt">
+      <div class="opt-head"><h3>B · Same cloud, weather around it</h3></div>
+      <div class="stage"><canvas id="cB" width="560" height="560" role="img" aria-label="Approach B: the cloud stays, the weather appears around it"></canvas><span class="caption" id="capB"></span></div>
+      <ul class="pros">
+        <li class="good">Within DESIGN.md as it is: marks and props next to the cloud, which is how the moods already work.</li>
+        <li class="bad">Mild: a sun crown and falling drops say less than becoming the sun.</li>
+      </ul>
+    </div>
+    <div class="opt">
+      <div class="opt-head"><h3>C · Morph, then come home</h3></div>
+      <div class="stage"><canvas id="cC" width="560" height="560" role="img" aria-label="Approach C: the cloud morphs into the weather, then returns to a cloud with a small prop"></canvas><span class="caption" id="capC"></span></div>
+      <ul class="pros">
+        <li class="good">The shape-shift happens when the weather changes or you open the dropdown, then it settles back into the cloud (with B's props).</li>
+        <li class="good">The family cloud most of the time; the trick stays a surprise.</li>
+        <li class="bad">You can miss it: open the dropdown a second later and it's already a cloud again.</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="intro" aria-labelledby="cat">
+    <div class="eyebrow">Every form</div>
+    <h2 id="cat">What it turns into</h2>
+    <p>Click one to send all three stages there. Each form keeps the face; its glow takes the weather's color; something moves around it.</p>
+    <div class="catalogue" id="catalogue"></div>
+  </section>
+
+  <section class="intro" aria-labelledby="mbh">
+    <div class="eyebrow">Decision 2</div>
+    <h2 id="mbh">The menu bar glyph, too?</h2>
+    <p>Template silhouettes with the eyes cut out, 18 pt, as macOS tints them. Today the glyph is always the cloud, with drizzle marks for rain within the hour.</p>
+    <div class="glyphs" id="glyphs"></div>
+  </section>
+
+  <section class="intro" aria-labelledby="dd">
+    <div class="eyebrow">Decisions</div>
+    <h2 id="dd">To choose in the chat</h2>
+    <div class="decide">
+      <div class="box"><div class="eyebrow">1 · Approach</div><div class="ans">A · Shape-shifter, everywhere the cloud is big (dropdown corner, island).</div><div class="alt">Or B (props only) or C (morph, then home).</div></div>
+      <div class="box"><div class="eyebrow">2 · Menu bar glyph</div><div class="ans">Keep the cloud glyph; at 18 pt a sun or bolt reads as just another weather icon, and the cloud is what says "nimbi".</div><div class="alt">Or morph the glyph too.</div></div>
+      <div class="box"><div class="eyebrow">3 · Where it lives</div><div class="ans">In NimbiKit, as <code>NimbiCloud(form:)</code>: the face and skin are drawn there, and other apps may want forms later.</div><div class="alt">Or Skyline only, wrapping the cloud.</div></div>
+      <div class="box"><div class="eyebrow">Always</div><div class="ans">Moods still rule the face: asleep at night is a sleepy moon, a storm warning is a bolt with the "!" mark. Reduce Motion morphs with a crossfade.</div></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const N = 220, TAU = Math.PI * 2;
+
+  // ---------- outlines, all as N points from the top, clockwise, in unit space (y down) ----------
+  const polar = f => Array.from({ length: 720 }, (_, i) => { const t = i / 720 * TAU; const r = f(t); return [r * Math.cos(t), r * Math.sin(t)]; });
+  function resample(pts, n = N) {
+    // clockwise in screen space
+    let a = 0; for (let i = 0; i < pts.length; i++) { const [x1, y1] = pts[i], [x2, y2] = pts[(i + 1) % pts.length]; a += x1 * y2 - x2 * y1; }
+    if (a < 0) pts = pts.slice().reverse();
+    let top = 0; pts.forEach((p, i) => { if (p[1] < pts[top][1] - 1e-6 || (Math.abs(p[1] - pts[top][1]) < 1e-6 && Math.abs(p[0]) < Math.abs(pts[top][0]))) top = i; });
+    pts = pts.slice(top).concat(pts.slice(0, top));
+    const L = [0]; for (let i = 1; i <= pts.length; i++) { const p = pts[i - 1], q = pts[i % pts.length]; L.push(L[i - 1] + Math.hypot(q[0] - p[0], q[1] - p[1])); }
+    const total = L[L.length - 1], out = []; let j = 0;
+    for (let k = 0; k < n; k++) { const d = k / n * total; while (L[j + 1] < d) j++; const p = pts[j], q = pts[(j + 1) % pts.length], f = (d - L[j]) / ((L[j + 1] - L[j]) || 1); out.push([p[0] + (q[0] - p[0]) * f, p[1] + (q[1] - p[1]) * f]); }
+    return out;
+  }
+  const smooth = (pts, passes = 3) => { for (let s = 0; s < passes; s++) pts = pts.map((p, i) => { const a = pts[(i - 1 + pts.length) % pts.length], b = pts[(i + 1) % pts.length]; return [(a[0] + 2 * p[0] + b[0]) / 4, (a[1] + 2 * p[1] + b[1]) / 4]; }); return pts; };
+  const cloudR = t => 0.93 + 0.043 * (2 * Math.pow(Math.abs(Math.cos(4 * t + 0.2)), 0.7) - 1) + 0.012 * Math.sin(2 * t + 1);
+  function crescent() {
+    const R = 0.86, r = 0.74, cx = 0.34, cy = -0.24, pts = [];
+    const inside = (x, y) => Math.hypot(x - cx, y - cy) < r;
+    for (let i = 0; i < 720; i++) { const t = i / 720 * TAU, x = R * Math.cos(t), y = R * Math.sin(t); if (!inside(x, y)) pts.push([x, y, t]); }
+    // order the lit arc so it's contiguous, then come back along the inner circle
+    let gap = 0; for (let i = 1; i < pts.length; i++) if (pts[i][2] - pts[i - 1][2] > 0.05) gap = i;
+    const arc = pts.slice(gap).concat(pts.slice(0, gap)).map(p => [p[0], p[1]]);
+    const a0 = arc[0], a1 = arc[arc.length - 1];
+    let t0 = Math.atan2(a1[1] - cy, a1[0] - cx), t1 = Math.atan2(a0[1] - cy, a0[0] - cx);
+    while (t1 > t0) t1 -= TAU;
+    const inner = []; for (let i = 0; i <= 160; i++) { const t = t0 + (t1 - t0) * i / 160; inner.push([cx + r * Math.cos(t), cy + r * Math.sin(t)]); }
+    return arc.concat(inner);
+  }
+  function drop() { const pts = []; for (let i = 0; i < 720; i++) { const u = i / 720 * TAU; pts.push([0.82 * Math.sin(u) * Math.pow(Math.sin(u / 2), 1.15), -Math.cos(u) * 0.98 + 0.06]); } return pts; }
+  function bolt() {
+    const v = [[0.2, -1.0], [-0.66, 0.22], [-0.08, 0.22], [-0.32, 1.0], [0.68, -0.3], [0.1, -0.3], [0.5, -1.0]];
+    const pts = []; for (let i = 0; i < v.length; i++) { const a = v[i], b = v[(i + 1) % v.length]; for (let k = 0; k < 40; k++) pts.push([a[0] + (b[0] - a[0]) * k / 40, a[1] + (b[1] - a[1]) * k / 40]); }
+    return pts;
+  }
+  function fog() {
+    const pts = [], w = 1.0, h = 0.36;
+    for (let i = 0; i <= 120; i++) { const x = -w + 2 * w * i / 120; pts.push([x, -h + 0.07 * Math.sin(x * 7 + 1)]); }
+    for (let i = 0; i <= 40; i++) { const t = -Math.PI / 2 + Math.PI * i / 40; pts.push([w + 0.02 + h * 0.9 * Math.cos(t) * 0.6, h * Math.sin(t)]); }
+    for (let i = 120; i >= 0; i--) { const x = -w + 2 * w * i / 120; pts.push([x, h + 0.06 * Math.sin(x * 6 + 2.4)]); }
+    for (let i = 0; i <= 40; i++) { const t = Math.PI / 2 + Math.PI * i / 40; pts.push([-w - 0.02 + h * 0.9 * Math.cos(t) * 0.6, h * Math.sin(t)]); }
+    return pts;
+  }
+  const forms = {
+    cloud: { pts: resample(polar(cloudR)), face: [0.08, -0.02], eye: 1 },
+    sun:   { pts: resample(smooth(polar(t => 0.7 + 0.2 * Math.pow(Math.max(0, Math.cos(10 * t)), 1.6)), 2)), face: [0, 0], eye: 0.92 },
+    partly:{ pts: resample(polar(t => cloudR(t) + 0.16 * Math.pow(Math.max(0, Math.cos(10 * t)), 2) * Math.pow(Math.max(0, Math.cos(t + 2.2)), 1.5))), face: [0.08, 0.02], eye: 1 },
+    moon:  { pts: resample(smooth(crescent(), 3)), face: [-0.5, 0.1], eye: 0.8 },
+    drop:  { pts: resample(smooth(drop(), 2)), face: [0, 0.32], eye: 0.92 },
+    bolt:  { pts: resample(smooth(bolt(), 4)), face: [0.0, -0.04], eye: 0.66 },
+    snow:  { pts: resample(smooth(polar(t => 0.42 + 0.52 * Math.pow(Math.abs(Math.cos(3 * t)), 10) + 0.12 * Math.pow(Math.abs(Math.cos(9 * t)), 14) * Math.pow(Math.abs(Math.cos(3 * t)), 2)), 2)), face: [0, 0], eye: 0.75 },
+    fog:   { pts: resample(fog()), face: [0, 0], eye: 0.85 },
+    gust:  { pts: resample(polar(cloudR)).map(([x, y]) => [x * 1.22 + y * 0.28, y * 0.74]), face: [0.2, 0], eye: 0.92 },
+  };
+  forms.hot = forms.sun;
+
+  // ---------- weathers ----------
+  const W = [
+    { id: 'sun', name: 'Clear sky', form: 'sun', glow: '#FFC93C', fx: 'rays', say: 'Sun. Rays turn slowly, warm glow.' },
+    { id: 'partly', name: 'Partly cloudy', form: 'partly', glow: '#FFD27A', fx: 'none', say: 'Cloud with a crown of rays peeking out.' },
+    { id: 'cloudy', name: 'Cloudy', form: 'cloud', glow: '#B07CFF', fx: 'drift', say: 'Home form. Drifts a little.' },
+    { id: 'rain', name: 'Rain', form: 'drop', glow: '#7FD0FF', fx: 'rain', say: 'A raindrop. Drops fall; heavier rain falls faster.' },
+    { id: 'thunder', name: 'Thunder', form: 'bolt', glow: '#F2B33D', fx: 'flash', say: 'A bolt. The sky flashes now and then.' },
+    { id: 'snow', name: 'Snow', form: 'snow', glow: '#DDF1FF', fx: 'snow', say: 'A snowflake, turning slowly; flakes drift.' },
+    { id: 'fog', name: 'Fog', form: 'fog', glow: '#9AA5B1', fx: 'fog', say: 'A long misty wisp; bands slide past.' },
+    { id: 'wind', name: 'Windy', form: 'gust', glow: '#B9B4FF', fx: 'wind', say: 'Stretched and leaning into the wind; streaks fly by.' },
+    { id: 'night', name: 'Clear night', form: 'moon', glow: '#B9B4FF', fx: 'stars', say: 'A crescent moon, sleepy; stars twinkle.' },
+    { id: 'hot', name: 'Hot (30°+)', form: 'hot', glow: '#FF7A1A', fx: 'shimmer', say: 'An overheated sun; the air shimmers.' },
+  ];
+  let current = W[3];
+
+  // ---------- drawing ----------
+  const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+  const mix = (a, b, f) => a.map((v, i) => v + (b[i] - v) * f);
+  function skin(ctx, cx, cy, s) {
+    const g = ctx.createRadialGradient(cx - s * 0.35, cy - s * 0.4, s * 0.05, cx, cy, s * 1.15);
+    g.addColorStop(0, '#FFFFFF'); g.addColorStop(0.32, '#A6DBFF'); g.addColorStop(0.68, '#C5BAFF'); g.addColorStop(1, '#F3B6EC');
+    return g;
+  }
+  function drawMascot(ctx, st, size, cx, cy, t) {
+    const s = size / 2;
+    const path = new Path2D();
+    st.pts.forEach(([x, y], i) => { const wob = st.shimmer ? 0.012 * Math.sin(t * 6 + i * 0.4) : 0; const px = cx + (x + wob) * s, py = cy + y * s; i ? path.lineTo(px, py) : path.moveTo(px, py); });
+    path.closePath();
+    const g = st.glow.map(Math.round);
+    ctx.save(); ctx.shadowColor = `rgba(${g},.75)`; ctx.shadowBlur = s * 0.45; ctx.fillStyle = skin(ctx, cx, cy, s); ctx.fill(path); ctx.restore();
+    ctx.save(); ctx.clip(path); ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.beginPath(); ctx.ellipse(cx - s * 0.3, cy - s * 0.42, s * 0.42, s * 0.24, -0.4, 0, TAU); ctx.fill(); ctx.restore();
+    // face: two eyes, blinking now and then; sleepy at night
+    const blink = (Math.sin(t * 0.9) > 0.985) ? 0.12 : 1;
+    const fx = cx + st.face[0] * s, fy = cy + st.face[1] * s, e = st.eye * s, sleepy = st.sleepy;
+    ctx.fillStyle = '#24163A';
+    for (const dx of [-0.13, 0.13]) {
+      ctx.beginPath();
+      if (sleepy > 0.5) { ctx.lineWidth = e * 0.035; ctx.strokeStyle = '#24163A'; ctx.lineCap = 'round'; ctx.arc(fx + dx * e, fy - e * 0.02, e * 0.06, 0.15 * Math.PI, 0.85 * Math.PI); ctx.stroke(); }
+      else { ctx.ellipse(fx + dx * e, fy, e * 0.065, e * 0.095 * blink, 0, 0, TAU); ctx.fill(); }
+    }
+  }
+
+  // ---------- effects ----------
+  function makeFx() { return { drops: Array.from({ length: 34 }, () => [Math.random(), Math.random(), 0.6 + Math.random() * 0.8]), flash: 0, nextFlash: 1.5 }; }
+  function drawFx(ctx, kind, W2, H, t, dt, fx, cx, cy, s, strength = 1) {
+    ctx.save(); ctx.globalAlpha = strength;
+    if (kind === 'rain') { ctx.strokeStyle = 'rgba(127,208,255,.75)'; ctx.lineWidth = 2.2; ctx.lineCap = 'round'; fx.drops.forEach(d => { d[1] += dt * 0.6 * d[2]; if (d[1] > 1) { d[1] = 0; d[0] = Math.random(); } const x = cx + (d[0] - 0.5) * s * 1.6, y = cy + s * 0.5 + d[1] * H * 0.45; ctx.globalAlpha = strength * (1 - d[1]); ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 12); ctx.stroke(); }); }
+    if (kind === 'snow') { ctx.fillStyle = 'rgba(235,245,255,.9)'; fx.drops.forEach(d => { d[1] += dt * 0.12 * d[2]; if (d[1] > 1) { d[1] = 0; d[0] = Math.random(); } const x = d[0] * W2 + Math.sin(t + d[2] * 9) * 10, y = d[1] * H; ctx.globalAlpha = strength * 0.8; ctx.beginPath(); ctx.arc(x, y, 2.2 * d[2], 0, TAU); ctx.fill(); }); }
+    if (kind === 'stars') { fx.drops.slice(0, 18).forEach((d, i) => { const a = 0.35 + 0.65 * Math.abs(Math.sin(t * 1.3 + i)); ctx.globalAlpha = strength * a; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(d[0] * W2, d[1] * H * 0.75, 1.4 + d[2], 0, TAU); ctx.fill(); }); }
+    if (kind === 'fog') { for (let i = 0; i < 4; i++) { const y = H * (0.25 + i * 0.17), x = ((t * 18 * (i % 2 ? 1 : -1) + i * 160) % (W2 + 300)) - 150; const g = ctx.createLinearGradient(x - 160, 0, x + 160, 0); g.addColorStop(0, 'rgba(180,190,200,0)'); g.addColorStop(.5, 'rgba(180,190,200,.16)'); g.addColorStop(1, 'rgba(180,190,200,0)'); ctx.fillStyle = g; ctx.fillRect(x - 160, y, 320, 16); } }
+    if (kind === 'wind') { ctx.strokeStyle = 'rgba(255,255,255,.35)'; ctx.lineWidth = 2; ctx.lineCap = 'round'; fx.drops.slice(0, 8).forEach((d, i) => { d[0] -= dt * 0.9 * d[2]; if (d[0] < -0.3) { d[0] = 1.2; d[1] = Math.random(); } const x = d[0] * W2, y = H * (0.15 + d[1] * 0.7); ctx.beginPath(); ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 30, y - 6, x + 70 * d[2], y); ctx.stroke(); }); }
+    if (kind === 'flash') { fx.nextFlash -= dt; if (fx.nextFlash < 0) { fx.flash = 1; fx.nextFlash = 2 + Math.random() * 3; } if (fx.flash > 0) { ctx.globalAlpha = strength * fx.flash * 0.35; ctx.fillStyle = '#FFF6D6'; ctx.fillRect(0, 0, W2, H); fx.flash = Math.max(0, fx.flash - dt * 4); } }
+    if (kind === 'shimmer') { ctx.globalAlpha = strength * 0.25; for (let i = 0; i < 5; i++) { ctx.strokeStyle = 'rgba(255,170,90,.6)'; ctx.lineWidth = 1.5; ctx.beginPath(); for (let x = 0; x <= W2; x += 8) { const y = H * 0.82 + i * 9 + Math.sin(x * 0.04 + t * 3 + i) * 4; x ? ctx.lineTo(x, y) : ctx.moveTo(x, y); } ctx.stroke(); } }
+    ctx.restore();
+  }
+  // B's props: the cloud stays; the weather shows next to it
+  function drawProps(ctx, w, cx, cy, s, t, strength) {
+    ctx.save(); ctx.globalAlpha = strength;
+    if (w.id === 'sun' || w.id === 'hot' || w.id === 'partly') {
+      ctx.save(); ctx.translate(cx - s * 0.55, cy - s * 0.55); ctx.rotate(t * 0.15);
+      const n = 12; ctx.fillStyle = w.id === 'hot' ? '#FF9A3C' : '#FFC93C';
+      ctx.beginPath(); ctx.arc(0, 0, s * 0.42, 0, TAU); ctx.fill();
+      ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = s * 0.07; ctx.lineCap = 'round';
+      for (let i = 0; i < n; i++) { const a = i / n * TAU; ctx.beginPath(); ctx.moveTo(Math.cos(a) * s * 0.55, Math.sin(a) * s * 0.55); ctx.lineTo(Math.cos(a) * s * 0.72, Math.sin(a) * s * 0.72); ctx.stroke(); }
+      ctx.restore();
+    }
+    if (w.id === 'night') { ctx.fillStyle = '#F6F0C8'; ctx.beginPath(); ctx.arc(cx + s * 0.62, cy - s * 0.62, s * 0.28, 0, TAU); ctx.fill(); ctx.globalCompositeOperation = 'destination-out'; ctx.beginPath(); ctx.arc(cx + s * 0.74, cy - s * 0.72, s * 0.24, 0, TAU); ctx.fill(); }
+    if (w.id === 'thunder') { ctx.fillStyle = '#FFC93C'; ctx.beginPath(); const bx = cx + s * 0.1, by = cy + s * 0.75; ctx.moveTo(bx, by); ctx.lineTo(bx - s * 0.22, by + s * 0.38); ctx.lineTo(bx - s * 0.04, by + s * 0.38); ctx.lineTo(bx - s * 0.16, by + s * 0.7); ctx.lineTo(bx + s * 0.2, by + s * 0.24); ctx.lineTo(bx + s * 0.02, by + s * 0.24); ctx.lineTo(bx + s * 0.12, by); ctx.closePath(); ctx.fill(); }
+    ctx.restore();
+  }
+
+  // ---------- a stage: state that springs toward a target ----------
+  function Stage(canvas, mode) {
+    const ctx = canvas.getContext('2d'), Wc = canvas.width, Hc = canvas.height;
+    const st = { pts: forms.cloud.pts.map(p => p.slice()), face: forms.cloud.face.slice(), eye: 1, glow: hex('#B07CFF'), sleepy: 0, shimmer: false, rot: 0 };
+    const fx = makeFx(); let weather = current, morphUntil = 0, propA = 0, effA = 0;
+    function target(time) {
+      if (mode === 'B') return 'cloud';
+      if (mode === 'C') return time < morphUntil ? weather.form : 'cloud';
+      return weather.form;
+    }
+    function set(w, time) { weather = w; morphUntil = time + 2.6; }
+    function frame(time, dt) {
+      const f = forms[target(time)] || forms.cloud, k = reduce ? 1 : 1 - Math.pow(0.0009, dt);
+      st.pts.forEach((p, i) => { p[0] += (f.pts[i][0] - p[0]) * k; p[1] += (f.pts[i][1] - p[1]) * k; });
+      st.face[0] += (f.face[0] - st.face[0]) * k; st.face[1] += (f.face[1] - st.face[1]) * k; st.eye += (f.eye - st.eye) * k;
+      st.glow = mix(st.glow, hex(weather.glow), k);
+      st.sleepy += ((weather.id === 'night' ? 1 : 0) - st.sleepy) * k;
+      st.shimmer = weather.id === 'hot' && target(time) !== 'cloud';
+      const showProps = mode === 'B' || (mode === 'C' && time >= morphUntil);
+      propA += ((showProps ? 1 : 0) - propA) * k; effA += (1 - effA) * k;
+      ctx.clearRect(0, 0, Wc, Hc);
+      const cx = Wc / 2, cy = Hc * 0.46, s = Wc * 0.26;
+      if (['stars', 'fog', 'flash'].includes(weather.fx)) drawFx(ctx, weather.fx, Wc, Hc, time, dt, fx, cx, cy, s, effA);
+      drawProps(ctx, weather, cx, cy, s, time, propA);
+      // rays and snowflakes turn slowly
+      const spin = (target(time) === 'sun' || target(time) === 'hot') ? 0.18 : target(time) === 'snow' ? 0.1 : 0;
+      st.rot += spin * dt;
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(spin ? st.rot : 0); ctx.translate(-cx, -cy);
+      const drift = weather.fx === 'drift' ? Math.sin(time * 0.7) * 6 : 0;
+      drawMascot(ctx, st, Wc * 0.52, cx + drift, cy, time);
+      ctx.restore();
+      if (['rain', 'snow', 'wind', 'shimmer'].includes(weather.fx)) drawFx(ctx, weather.fx, Wc, Hc, time, dt, fx, cx, cy, s, effA);
+    }
+    return { set, frame };
+  }
+
+  const stages = [Stage(document.getElementById('cA'), 'A'), Stage(document.getElementById('cB'), 'B'), Stage(document.getElementById('cC'), 'C')];
+  const caps = ['capA', 'capB', 'capC'].map(id => document.getElementById(id));
+  let clock = 0;
+  function choose(w) {
+    current = w;
+    stages.forEach(s => s.set(w, clock));
+    document.querySelectorAll('#picker button').forEach(b => b.setAttribute('aria-pressed', b.dataset.id === w.id));
+    caps.forEach(c => c.textContent = w.name);
+  }
+  const picker = document.getElementById('picker');
+  W.forEach(w => { const b = document.createElement('button'); b.type = 'button'; b.dataset.id = w.id; b.textContent = w.name; b.onclick = () => choose(w); picker.appendChild(b); });
+
+  // catalogue: each form still, in its own small stage
+  const cat = document.getElementById('catalogue');
+  W.forEach(w => {
+    const el = document.createElement('button'); el.className = 'form'; el.type = 'button';
+    el.innerHTML = `<canvas width="240" height="240" role="img" aria-label="${w.name}: ${w.say}"></canvas><b>${w.name}</b><span>${w.say}</span>`;
+    el.onclick = () => { choose(w); document.getElementById('picker').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' }); };
+    cat.appendChild(el);
+    const c = el.querySelector('canvas'), x = c.getContext('2d'), f = forms[w.form];
+    const st = { pts: f.pts, face: f.face, eye: f.eye, glow: hex(w.glow), sleepy: w.id === 'night' ? 1 : 0, shimmer: false };
+    drawMascot(x, st, 124, 120, 116, 0.2);
+  });
+
+  // menu bar glyphs: template silhouettes, eyes cut out
+  const glyphs = document.getElementById('glyphs');
+  [['cloud', 'Cloud (today)'], ['sun', 'Sun'], ['drop', 'Rain'], ['bolt', 'Thunder'], ['snow', 'Snow'], ['moon', 'Night']].forEach(([form, label]) => {
+    for (const light of [false, true]) {
+      const span = document.createElement('span'); span.className = 'mb' + (light ? ' light' : ''); span.title = label;
+      const c = document.createElement('canvas'); c.width = 36; c.height = 36; c.style.width = '18px'; c.style.height = '18px';
+      const x = c.getContext('2d'), f = forms[form], s = 15.5, cx = 18, cy = 18;
+      x.fillStyle = light ? '#111' : '#fff'; x.beginPath(); f.pts.forEach(([px, py], i) => i ? x.lineTo(cx + px * s, cy + py * s) : x.moveTo(cx + px * s, cy + py * s)); x.closePath(); x.fill();
+      x.globalCompositeOperation = 'destination-out'; const e = f.eye * s;
+      for (const dx of [-0.13, 0.13]) { x.beginPath(); x.ellipse(cx + f.face[0] * s + dx * e, cy + f.face[1] * s, e * 0.1, e * 0.14, 0, 0, TAU); x.fill(); }
+      span.appendChild(c); span.appendChild(document.createTextNode('18°')); span.setAttribute('aria-label', `${label} glyph, 18 degrees`);
+      glyphs.appendChild(span);
+    }
+  });
+
+  choose(current);
+  let last = performance.now();
+  function loop(now) { const dt = Math.min(0.05, (now - last) / 1000); last = now; clock += dt; stages.forEach(s => s.frame(clock, dt)); requestAnimationFrame(loop); }
+  requestAnimationFrame(loop);
+})();
+</script>

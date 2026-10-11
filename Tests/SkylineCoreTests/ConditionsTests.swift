@@ -188,3 +188,64 @@ private extension Date {
         return cal.date(bySettingHour: t.hour!, minute: t.minute!, second: 0, of: day)!
     }
 }
+
+@Suite struct DayDetailTests {
+    @Test func daysCarryWindHumidityChanceAndUV() throws {
+        let hours: [Fixture.Hour] = (0..<30).map { i in
+            var h = Fixture.Hour(); h.wind = Double(i % 7)
+            h.instant = ["wind_speed_of_gust": Double(i % 7) + 4, "ultraviolet_index_clear_sky": i == 2 ? 4.2 : 1]
+            h.details = ["probability_of_precipitation": i == 3 ? 60 : 10]
+            return h
+        }
+        let oslo = TimeZone(identifier: "Europe/Oslo")!
+        let report = try #require(SkyReport(forecast: Fixture.forecast(hours), now: Fixture.t0, timeZone: oslo, dayCount: 7))
+        let today = try #require(report.days.first)
+        #expect(today.wind == 6 && today.gust == 10)
+        #expect(today.precipitationChance == 60)
+        #expect(today.uv == 4.2)
+        #expect(abs((today.humidity ?? 0) - 71.2) < 0.01)
+        #expect(report.days.count == 2)
+    }
+}
+
+@Suite struct CloudWeatherTests {
+    private let oslo = TimeZone(identifier: "Europe/Oslo")!
+
+    private func report(_ tweak: (inout Fixture.Hour, Int) -> Void, at now: Date = Fixture.t0.addingTimeInterval(20 * 60)) throws -> SkyReport {
+        let hours: [Fixture.Hour] = (0..<24).map { i in var h = Fixture.Hour(); tweak(&h, i); return h }
+        return try #require(SkyReport(forecast: Fixture.forecast(hours), now: now, timeZone: oslo))
+    }
+
+    @Test func rainNowScalesWithTheRate() throws {
+        let r = try report { h, i in if i < 2 { h.symbol = "heavyrain"; h.precipitation = 4 } }
+        #expect(r.cloudWeather == .rain(1))
+        let light = try report { h, i in if i < 2 { h.symbol = "lightrain"; h.precipitation = 0.4 } }
+        #expect(light.cloudWeather == .rain(0.15))
+    }
+
+    @Test func thunderWins() throws {
+        let r = try report { h, i in if i == 1 { h.symbol = "rainandthunder"; h.precipitation = 2 } }
+        #expect(r.cloudWeather == .thunder)
+    }
+
+    @Test func snowFallingIsSnow() throws {
+        let r = try report { h, i in if i == 0 { h.symbol = "snow"; h.precipitation = 1 } }
+        #expect(r.cloudWeather == .snow)
+    }
+
+    @Test func clearByDayIsTheSun() throws {
+        #expect(try report { h, _ in h.symbol = "clearsky_day" }.cloudWeather == .clear)
+        #expect(try report { h, _ in h.symbol = "fair_day" }.cloudWeather == .partlyCloudy)
+        #expect(try report { h, _ in h.symbol = "cloudy" }.cloudWeather == .none)
+    }
+
+    @Test func clearNightIsTheMoon() throws {
+        let night = Fixture.t0.addingTimeInterval(8 * 3600)
+        #expect(try report({ h, _ in h.symbol = "clearsky_night" }, at: night).cloudWeather == .clearNight)
+    }
+
+    @Test func windAndHeat() throws {
+        #expect(try report { h, _ in h.wind = 12 }.cloudWeather == .wind)
+        #expect(try report { h, _ in h.temperature = 32; h.symbol = "clearsky_day" }.cloudWeather == .hot)
+    }
+}

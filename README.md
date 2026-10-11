@@ -47,7 +47,8 @@ CC BY 4.0.
 - **Click** for the dropdown, two panes: on the left the now card (big temperature, high and low, the
   condition, sunrise and sunset, wind, humidity, air, UV); on the right the place and time, seven day
   cards (click one, or ← →, to see that day on the left), and the next 24 hours as a skyline (rain bars
-  under the temperature line). nimbi's cloud peeks in from the corner. **Right-click** for a short menu.
+  under the temperature line). nimbi's cloud peeks in from the corner with the weather around it: a
+  sun behind it, rain or snow falling past it, a bolt beside it, a moon and stars at night. **Right-click** for a short menu.
 - **Around the temperature:** the now card shows what matters (wind, humidity, air, UV, and anything
   worth a second look, like high pollen or thunder), or, with **D**, every value (feels like, rain
   chance, pressure, cloud layers, fog too). The chart shades MET's 10–90% temperature range and tints hours likely to be wet. Very poor air,

@@ -36,17 +36,20 @@ struct ForecastView: View {
                 waiting
             }
         }
-        .overlay(alignment: .bottomTrailing) { peekingCloud }
+        // Behind the content: the sun, rain or a bolt never cover a label or a key.
+        .background(alignment: .bottomTrailing) { peekingCloud }
     }
 
     private func selected(_ report: SkyReport) -> SkyReport.Day? {
         panel.selectedDay > 0 && panel.selectedDay < report.days.count ? report.days[panel.selectedDay] : nil
     }
 
-    /// The cloud, big and cropped by the panel's corner, in the sky's mood, eyes on the cursor.
+    /// The cloud, big and cropped by the panel's corner, in the sky's mood, eyes on the cursor,
+    /// with the weather around it: now's, or the picked day's.
     private var peekingCloud: some View {
         let size = (model.report == nil ? 100 : 124) * k
-        return NimbiCloud(size: size, mood: model.mood.mood, working: model.mood.working)
+        let weather = model.report.map { report in selected(report)?.cloudWeather ?? report.cloudWeather } ?? .none
+        return NimbiCloud(size: size, mood: model.mood.mood, working: model.mood.working, weather: weather)
             .frame(width: size, height: size)
             .offset(x: size * 0.26, y: size * 0.34)
             .allowsHitTesting(false)

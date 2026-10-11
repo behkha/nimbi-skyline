@@ -368,7 +368,8 @@ private struct OpenPage: View {
 
     var body: some View {
         HStack(alignment: .center, spacing: 18) {
-            NimbiCloud(size: 92, mood: model.mood.mood, working: model.mood.working)
+            NimbiCloud(size: 92, mood: model.mood.mood, working: model.mood.working,
+                       weather: model.report?.cloudWeather ?? .none)
                 .frame(width: 92, height: 92)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
