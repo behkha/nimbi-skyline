@@ -23,6 +23,12 @@ enum SkylineMain {
             exit(0)
         }
 
+        if let i = arguments.firstIndex(of: "--render"), i + 1 < arguments.count {
+            _ = NSApplication.shared
+            RenderCommand.run(into: URL(fileURLWithPath: arguments[i + 1]))
+            exit(0)
+        }
+
         let app = NSApplication.shared
         let delegate = AppDelegate()
         app.delegate = delegate

@@ -44,16 +44,16 @@ CC BY 4.0.
 
 - **Menu bar:** the nimbi cloud and the temperature. Drizzle marks hang under the cloud when rain starts
   within the hour; an amber dot means a storm or dangerous heat within three hours.
-- **Click** for the dropdown: the cloud in its mood, the place and what the sky is doing, the next 24
-  hours as a skyline (rain bars under the temperature line), and five days. **Right-click** for a short
-  menu.
-- **Around the temperature:** a quiet strip of what matters now (feels like when it differs, wind when
-  it blows, rain chance, air quality, pollen in season, UV by day, the next sunrise or sunset), or, with
-  **D**, a grid with every value labelled (humidity, dew point, pressure, cloud layers, fog and thunder
-  too). The chart shades MET's 10–90% temperature range and tints hours likely to be wet. Very poor air,
+- **Click** for the dropdown, two panes: on the left the now card (big temperature, high and low, the
+  condition, sunrise and sunset, wind, humidity, air, UV); on the right the place and time, seven day
+  cards (click one, or ← →, to see that day on the left), and the next 24 hours as a skyline (rain bars
+  under the temperature line). nimbi's cloud peeks in from the corner. **Right-click** for a short menu.
+- **Around the temperature:** the now card shows what matters (wind, humidity, air, UV, and anything
+  worth a second look, like high pollen or thunder), or, with **D**, every value (feels like, rain
+  chance, pressure, cloud layers, fog too). The chart shades MET's 10–90% temperature range and tints hours likely to be wet. Very poor air,
   or UV 8+ under a mostly clear sky, is a `notice`: it never changes the cloud's mood.
 - **Keys** in the dropdown: **R** asks MET again (shown only once the forecast has expired; MET's terms
-  forbid asking sooner), **L** changes place, **D** more or less detail, **,** opens settings (theme,
+  forbid asking sooner), **L** changes place, **D** more or less detail, **← →** another day, **,** opens settings (theme,
   text size, detail, European or US air index), **esc** goes back or closes.
 - **Place:** follow the Mac (Location Services) or pick a city. Settings also hold the theme (Dark,
   Black) and the text size.
@@ -115,6 +115,10 @@ To look at the glyph and the dropdown in a given sky without waiting for the wea
 ```bash
 SKYLINE_DEMO=storm build/Skyline.app/Contents/MacOS/Skyline
 ```
+
+`SKYLINE_DEMO_SHOW=1` also shows the dropdown for a screenshot without taking the keyboard, and
+`SKYLINE_DEMO=rain .build/debug/Skyline --render <dir>` draws its pages to PNGs with no window at all
+(links and the cloud show as placeholders there).
 
 To see what Skyline makes of the live forecast for a place, without any UI:
 

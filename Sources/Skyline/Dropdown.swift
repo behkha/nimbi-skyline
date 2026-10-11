@@ -24,6 +24,8 @@ final class PanelState: ObservableObject {
     @Published var hanging = false
     /// While hanging: at least as wide as the island, so the two read as one piece.
     @Published var minWidth: CGFloat = 0
+    /// The day shown in the now card: 0 is now, 1… the days after.
+    @Published var selectedDay = 0
     @Published var conditionsStyle = ConditionsStyle.saved {
         didSet { UserDefaults.standard.set(conditionsStyle.rawValue, forKey: ConditionsStyle.key) }
     }
@@ -109,6 +111,17 @@ final class Dropdown: NSObject, NSWindowDelegate {
         startKeys()
     }
 
+    /// Demo only (`SKYLINE_DEMO_SHOW=1`): shows the forecast page near the top of the screen
+    /// without taking the keyboard, for screenshots of the real window.
+    func showForCapture() {
+        state.page = .forecast
+        guard let screen = NSScreen.main else { return }
+        let size = host.fittingSize
+        window.setFrame(NSRect(x: screen.visibleFrame.midX - size.width / 2, y: screen.visibleFrame.maxY - size.height,
+                               width: size.width, height: size.height), display: true)
+        window.orderFrontRegardless()
+    }
+
     /// Opens under the notch island, flush with it.
     func openFromIsland(_ page: PanelState.Page) {
         guard let island, island.isShown else { open(page); return }
@@ -129,6 +142,7 @@ final class Dropdown: NSObject, NSWindowDelegate {
         stopKeys()
         closedAt = Date()
         state.page = .forecast
+        state.selectedDay = 0
         hang(false)
     }
 
@@ -143,6 +157,11 @@ final class Dropdown: NSObject, NSWindowDelegate {
     private func show(_ page: PanelState.Page) {
         if page == .place { search.reset() }
         withAnimation(Nimbi.Motion.swap) { state.page = page }
+    }
+
+    private func pickDay(_ index: Int) {
+        let count = model.report?.days.count ?? 1
+        withAnimation(Nimbi.Motion.swap) { state.selectedDay = min(max(0, index), max(0, count - 1)) }
     }
 
     private func toggleDetails() {
@@ -200,14 +219,18 @@ final class Dropdown: NSObject, NSWindowDelegate {
 
     private enum Key {
         static let r: UInt16 = 15, l: UInt16 = 37, comma: UInt16 = 43, q: UInt16 = 12, d: UInt16 = 2
-        static let esc: UInt16 = 53, down: UInt16 = 125, up: UInt16 = 126
+        static let esc: UInt16 = 53, down: UInt16 = 125, up: UInt16 = 126, left: UInt16 = 123, right: UInt16 = 124
     }
 
     private func handle(_ event: NSEvent) -> Bool {
         let mods = event.modifierFlags.intersection([.command, .control, .option])
         if mods == .command, event.keyCode == Key.q { NSApp.terminate(nil); return true }
         guard mods.isEmpty else { return false }
-        if event.keyCode == Key.esc { back(); return true }
+        if event.keyCode == Key.esc {
+            // A picked day goes back to now first.
+            if state.page == .forecast, state.selectedDay != 0 { pickDay(0); return true }
+            back(); return true
+        }
         switch state.page {
         case .place:
             // The search field takes everything else; arrows move the highlighted city.
@@ -218,6 +241,8 @@ final class Dropdown: NSObject, NSWindowDelegate {
             switch event.keyCode {
             case Key.r where state.page == .forecast: model.refresh(); return true
             case Key.d where state.page == .forecast: toggleDetails(); return true
+            case Key.left where state.page == .forecast: pickDay(state.selectedDay - 1); return true
+            case Key.right where state.page == .forecast: pickDay(state.selectedDay + 1); return true
             case Key.l: show(.place); return true
             case Key.comma: show(.settings); return true
             default: return false
@@ -257,7 +282,7 @@ struct DropdownRoot: View {
 
     @ViewBuilder private var page: some View {
         switch state.page {
-        case .forecast: ForecastView(model: model, location: location, style: state.conditionsStyle, actions: actions)
+        case .forecast: ForecastView(model: model, location: location, panel: state, actions: actions)
         case .place: PlacePicker(location: location, search: search, actions: actions)
         case .settings: SettingsView(location: location, model: model, panel: state, notch: notch, actions: actions)
         }

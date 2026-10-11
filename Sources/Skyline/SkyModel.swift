@@ -136,7 +136,7 @@ final class SkyModel: ObservableObject {
     /// Reads the cached forecast for this moment.
     private func reread() {
         let now = Date()
-        let newReport = forecast.flatMap { SkyReport(forecast: $0, now: now, timeZone: timeZone) }
+        let newReport = forecast.flatMap { SkyReport(forecast: $0, now: now, timeZone: timeZone, dayCount: 7) }
         let age = fetchedAt.map { now.timeIntervalSince($0) } ?? .infinity
         let newMood = tracker.update(newReport, dataAge: age, now: now)
         if newReport != report { report = newReport }

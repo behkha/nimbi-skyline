@@ -30,6 +30,9 @@ enum LookSettings {
 }
 
 extension WeatherSymbol {
+    /// The filled variant, which carries the colors in multicolor rendering (sun yellow, rain blue).
+    var filledImage: String { systemImage + ".fill" }
+
     /// The SF Symbol for this code, night variants included.
     var systemImage: String {
         let night = variant == .night

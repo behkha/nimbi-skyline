@@ -1,0 +1,291 @@
+<title>Skyline Redesign Options</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a dark nimbi worksheet — what we take from the reference, then three full-size panel mockups, then the smaller choices. */
+:root {
+  --page: #07070A; --void: #000; --panel: #141414; --card: #1B1B1D; --card-rim: rgba(255,255,255,.10); --well: rgba(255,255,255,.05);
+  --line: rgba(255,255,255,.07); --rim: rgba(255,255,255,.09);
+  --text: #FFFFFF; --strong: rgba(255,255,255,.88); --dim: rgba(255,255,255,.6); --faint: rgba(255,255,255,.42);
+  --sky: #7FD0FF; --lavender: #B9B4FF; --blush: #F3B6EC; --amber: #F2B33D; --done: #30D158; --sun: #FFC93C;
+  --display: 'Fredoka', ui-rounded, system-ui, sans-serif;
+  --body: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--text); font-family: var(--body); margin: 0; padding-inline: 20px; padding-block: 40px 80px; line-height: 1.5; }
+.wrap { max-width: 1240px; margin: 0 auto; display: flex; flex-direction: column; gap: 56px; }
+h1 { font-family: var(--display); font-weight: 600; font-size: clamp(30px, 5vw, 46px); letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 500; font-size: 26px; margin: 0; }
+h3 { font-size: 15px; margin: 0; font-weight: 600; }
+.eyebrow { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--faint); }
+p { margin: 0; color: var(--dim); max-width: 70ch; }
+.lead { font-size: 16px; color: var(--strong); }
+.intro, .dhead { display: flex; flex-direction: column; gap: 10px; }
+.cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.box { background: var(--panel); border: .75px solid var(--rim); border-radius: 16px; padding: 16px 18px; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.box ul { margin: 0; padding-left: 18px; color: var(--dim); font-size: 13.5px; display: flex; flex-direction: column; gap: 5px; }
+.box b { color: var(--strong); }
+.take { color: var(--done); } .adapt { color: var(--amber); } .leave { color: #FF6961; }
+.decision { display: flex; flex-direction: column; gap: 20px; }
+.opt { display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 20px; border: 1px solid var(--line); background: rgba(255,255,255,.02); min-width: 0; }
+.opt.rec { border-color: rgba(242,179,61,.45); }
+.opt-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.rec-chip { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 99px; background: rgba(242,179,61,.14); color: var(--amber); }
+.pros { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; font-size: 13px; color: var(--dim); }
+.pros li { padding-left: 18px; position: relative; }
+.pros li::before { position: absolute; left: 0; font-weight: 700; }
+.pros .good::before { content: "+"; color: var(--done); }
+.pros .bad::before { content: "–"; color: #FF6961; }
+.stage { display: flex; justify-content: center; padding: 22px 10px; border-radius: 14px; background: radial-gradient(120% 80% at 50% 0%, #15151A, #000 70%); overflow-x: auto; }
+.row2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); gap: 18px; align-items: start; }
+
+/* ===== shared panel bits (in-app values from DESIGN.md) ===== */
+.panel { position: relative; overflow: hidden; flex: none; background: var(--panel); border: .75px solid var(--rim); border-radius: 18px; box-shadow: 0 7px 14px rgba(0,0,0,.32); font-family: var(--body); }
+.panel.wide { width: 600px; border-radius: 22px; padding: 12px; display: grid; grid-template-columns: 252px 1fr; gap: 12px; }
+.panel.narrow { width: 318px; padding: 13px 14px; display: flex; flex-direction: column; gap: 10px; }
+.card { background: linear-gradient(180deg, #1D1D20, #151517); border: 1px solid var(--card-rim); border-radius: 18px; }
+.hero { padding: 14px 16px 16px; display: flex; flex-direction: column; gap: 12px; position: relative; }
+.temp { font-weight: 700; letter-spacing: -.04em; line-height: .9; font-variant-numeric: tabular-nums; }
+.temp.sheen { background: linear-gradient(180deg, #FFFFFF 30%, #CFE6FF); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.hl { font-size: 12px; color: var(--dim); font-variant-numeric: tabular-nums; display: flex; gap: 10px; }
+.hl i { width: 1px; background: var(--line); }
+.cond { font-weight: 800; text-transform: uppercase; letter-spacing: -.01em; line-height: .95; }
+.subline { font-size: 11.5px; color: var(--dim); }
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 12px; }
+.fact { display: flex; gap: 8px; align-items: center; min-width: 0; }
+.fact svg { flex: none; }
+.fact .k { font-size: 10px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; color: var(--strong); }
+.fact .v { font-size: 11.5px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.topline { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 4px 0; }
+.place { font-size: 12.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+.when { font-size: 11.5px; color: var(--dim); font-variant-numeric: tabular-nums; }
+.when b { color: var(--text); font-weight: 600; }
+.days { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.dcard { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 0 7px; border-radius: 13px; border: 1px solid transparent; font-variant-numeric: tabular-nums; }
+.dcard.on { background: #1E1E21; border-color: var(--card-rim); box-shadow: inset 0 1px 0 rgba(255,255,255,.04); }
+.dcard .n { font-size: 13px; font-weight: 600; margin-top: 3px; }
+.dcard .t { font-size: 11px; color: var(--dim); line-height: 1.25; text-align: center; }
+.chart { width: 100%; height: auto; display: block; }
+.keys { display: flex; gap: 6px; align-items: center; }
+.pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 10px; min-height: 25px; border-radius: 99px; background: rgba(255,255,255,.09); font-size: 11.5px; font-weight: 600; }
+.kh { display: inline-flex; align-items: center; justify-content: center; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 5px; background: rgba(255,255,255,.11); color: rgba(255,255,255,.6); font: 600 9.5px var(--body); }
+.foot { display: flex; justify-content: space-between; gap: 8px; font-size: 10px; color: var(--faint); }
+.peek { position: absolute; right: -34px; bottom: -40px; width: 150px; height: 150px; pointer-events: none; }
+.strip { display: flex; flex-wrap: wrap; gap: 5px; }
+.chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 8px; border-radius: 99px; background: rgba(255,255,255,.07); font-size: 11px; color: var(--strong); white-space: nowrap; }
+.chip.warn { background: rgba(242,179,61,.13); color: #FFD27A; }
+.dot { width: 6px; height: 6px; border-radius: 50%; }
+.dayrow { display: grid; grid-template-columns: 38px 20px 26px 1fr 26px; align-items: center; gap: 8px; min-height: 26px; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.dayrow .lo { color: var(--dim); text-align: right; }
+.track { position: relative; height: 4px; border-radius: 4px; background: rgba(255,255,255,.08); }
+.track i { position: absolute; inset: 0; border-radius: 4px; background: linear-gradient(90deg, rgba(255,255,255,.45), rgba(255,255,255,.85)); }
+.sec { font-size: 11px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--faint); }
+.icons-compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.iconrow { display: flex; gap: 16px; align-items: center; justify-content: center; padding: 16px; border-radius: 12px; background: #000; }
+.temps-compare { display: flex; gap: 28px; justify-content: center; align-items: baseline; padding: 18px; border-radius: 12px; background: #000; flex-wrap: wrap; }
+code { font-family: var(--mono); font-size: 12px; color: var(--strong); }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+
+<!-- Symbols drawn the way SF Symbols' multicolor mode paints them (sun yellow, rain blue, bolt yellow), and the nimbi cloud. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <radialGradient id="skin" cx="35%" cy="32%" r="78%"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="#A6DBFF"/><stop offset=".7" stop-color="#C7BDFF"/><stop offset="1" stop-color="#F3B6EC"/></radialGradient>
+    <filter id="soft"><feGaussianBlur stdDeviation="6"/></filter>
+    <symbol id="nimbi" viewBox="0 0 100 100">
+      <circle cx="50" cy="50" r="46" fill="#B07CFF" opacity=".28" filter="url(#soft)"/>
+      <path d="M50 8c7 0 9 5 14 6s13-1 16 5 0 11 3 16 8 7 8 15-6 9-8 14 2 11-3 16-11 1-16 4-7 8-14 8-9-5-15-7-12 2-15-3 0-11-3-16-8-7-8-14 6-9 8-14-2-11 3-16 11-1 15-4 8-10 15-10z" fill="url(#skin)"/>
+      <ellipse cx="46" cy="49" rx="4" ry="5.6" fill="#24163A"/><ellipse cx="57.5" cy="49.5" rx="4" ry="5.6" fill="#24163A"/>
+    </symbol>
+    <symbol id="i-sun" viewBox="0 0 32 32"><circle cx="16" cy="16" r="6.5" fill="#FFC93C"/><g stroke="#FFC93C" stroke-width="2.2" stroke-linecap="round"><path d="M16 3v3M16 26v3M3 16h3M26 16h3M6.8 6.8l2.1 2.1M23.1 23.1l2.1 2.1M6.8 25.2l2.1-2.1M23.1 8.9l2.1-2.1"/></g></symbol>
+    <symbol id="i-partly" viewBox="0 0 32 32"><circle cx="12" cy="11" r="5.5" fill="#FFC93C"/><g stroke="#FFC93C" stroke-width="2" stroke-linecap="round"><path d="M12 1.8v2.2M3 11h2.2M5.6 4.6l1.6 1.6M18.4 4.6l-1.6 1.6"/></g><path d="M10 27h15a5 5 0 0 0 .6-10 7 7 0 0 0-13.3 1.6A4.3 4.3 0 0 0 10 27z" fill="#F2F4F8"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 32 32"><path d="M8 25h16a6 6 0 0 0 .8-11.9 8 8 0 0 0-15.3 2A5 5 0 0 0 8 25z" fill="#E6E9EF"/></symbol>
+    <symbol id="i-rain" viewBox="0 0 32 32"><path d="M8 19h16a5.5 5.5 0 0 0 .7-10.9 7.5 7.5 0 0 0-14.3 1.8A4.6 4.6 0 0 0 8 19z" fill="#E6E9EF"/><g stroke="#4FB3FF" stroke-width="2.2" stroke-linecap="round"><path d="M11 22l-1.5 4M16 22l-1.5 4M21 22l-1.5 4"/></g></symbol>
+    <symbol id="i-storm" viewBox="0 0 32 32"><path d="M8 18h16a5.5 5.5 0 0 0 .7-10.9 7.5 7.5 0 0 0-14.3 1.8A4.6 4.6 0 0 0 8 18z" fill="#C9CDD6"/><path d="M15.5 18l-3 6h3.5l-2 6 6-8h-3.6l2.2-4z" fill="#FFC93C"/><g stroke="#4FB3FF" stroke-width="2" stroke-linecap="round"><path d="M9.5 21l-1.2 3M23 21l-1.2 3"/></g></symbol>
+    <symbol id="m-sun" viewBox="0 0 32 32"><circle cx="16" cy="16" r="6" fill="none" stroke="#fff" stroke-width="2"/><g stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M16 3v3M16 26v3M3 16h3M26 16h3M6.8 6.8l2.1 2.1M23.1 23.1l2.1 2.1M6.8 25.2l2.1-2.1M23.1 8.9l2.1-2.1"/></g></symbol>
+    <symbol id="m-partly" viewBox="0 0 32 32"><g fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="11" r="5"/><path d="M10 27h15a5 5 0 0 0 .6-10 7 7 0 0 0-13.3 1.6A4.3 4.3 0 0 0 10 27z" fill="#000"/></g></symbol>
+    <symbol id="m-rain" viewBox="0 0 32 32"><g fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M8 19h16a5.5 5.5 0 0 0 .7-10.9 7.5 7.5 0 0 0-14.3 1.8A4.6 4.6 0 0 0 8 19z"/><path d="M11 22l-1.5 4M16 22l-1.5 4M21 22l-1.5 4"/></g></symbol>
+    <symbol id="m-storm" viewBox="0 0 32 32"><g fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M8 18h16a5.5 5.5 0 0 0 .7-10.9 7.5 7.5 0 0 0-14.3 1.8A4.6 4.6 0 0 0 8 18z"/><path d="M15.5 18l-3 6h3.5l-2 6 6-8h-3.6l2.2-4z"/></g></symbol>
+    <symbol id="f-wind" viewBox="0 0 24 24"><g fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M3 9h11a3 3 0 1 0-3-3M3 13h15a3 3 0 1 1-3 3M3 17h7"/></g></symbol>
+    <symbol id="f-drop" viewBox="0 0 24 24"><path d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z" fill="none" stroke="#fff" stroke-width="1.6"/></symbol>
+    <symbol id="f-rise" viewBox="0 0 24 24"><g fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M7 15a5 5 0 0 1 10 0M3 18h18M12 5v4M9.5 7.5L12 5l2.5 2.5"/></g></symbol>
+    <symbol id="f-set" viewBox="0 0 24 24"><g fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><path d="M7 15a5 5 0 0 1 10 0M3 18h18M12 5v4M9.5 6.5L12 9l2.5-2.5"/></g></symbol>
+    <symbol id="f-air" viewBox="0 0 24 24"><g fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><path d="M8 13c2-2 6-2 8 0"/></g></symbol>
+    <symbol id="f-uv" viewBox="0 0 24 24"><g fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></g></symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="intro">
+    <div class="eyebrow">Skyline · redesign options · 11 Oct 2026</div>
+    <h1>Skyline, inspired by the two-pane card</h1>
+    <p class="lead">Three ways to bring the reference's feel into Skyline's dropdown: the big temperature and condition, sun times and facts with line icons, days as cards, colored weather symbols, and a big soft cloud in the corner. All mockups use Oslo on a Saturday afternoon.</p>
+  </header>
+
+  <section class="cols" aria-label="Reading the reference">
+    <div class="box"><div class="eyebrow take">Take</div><ul>
+      <li><b>Big temperature</b> with high and low under it.</li>
+      <li><b>Condition in big uppercase</b> ("PARTLY CLOUDY").</li>
+      <li><b>Sunrise, sunset, wind, humidity</b> as line-icon facts.</li>
+      <li><b>Days as cards</b>, today in a raised tile.</li>
+      <li><b>Place in caps</b> with the date and local time.</li></ul></div>
+    <div class="box"><div class="eyebrow adapt">Adapt</div><ul>
+      <li><b>The corner cloud</b> becomes nimbi's own cloud, peeking in, still in its mood and following the cursor.</li>
+      <li><b>3D emoji icons</b> become SF Symbols in multicolor (11.1 allows only SF Symbols).</li>
+      <li><b>The eclipse orb</b> becomes the cloud itself; nimbi never puts a second character on screen.</li></ul></div>
+    <div class="box"><div class="eyebrow leave">Leave out, or ask</div><ul>
+      <li><b>The blue gradient on 24°C:</b> 4.4 keeps gradients off product text. Flat white, unless you want an exception (decision 4).</li>
+      <li><b>Skyline's own pieces stay:</b> the 24 h skyline chart, the conditions strip and grid, keys, MET's credit.</li></ul></div>
+  </section>
+
+  <section class="decision" aria-labelledby="d1">
+    <div class="dhead">
+      <div class="eyebrow">Decision 1 of 4 · layout</div>
+      <h2 id="d1">The dropdown</h2>
+    </div>
+
+    <div class="opt rec">
+      <div class="opt-head"><h3>A · Two panes, 600 wide</h3><span class="rec-chip">Recommended</span></div>
+      <div class="stage">
+        <div class="panel wide" aria-label="Mockup A">
+          <div class="card hero">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start">
+              <svg width="54" height="54"><use href="#nimbi"/></svg>
+              <div style="text-align:right"><div class="temp" style="font-size:64px">18°</div><div class="hl" style="justify-content:flex-end;margin-top:6px"><span>H 19°</span><i></i><span>L 10°</span></div></div>
+            </div>
+            <div><div class="cond" style="font-size:30px">Partly<br>cloudy</div><div class="subline" style="margin-top:6px">Rain from 21:00</div></div>
+            <div class="facts">
+              <div class="fact"><svg width="20" height="20"><use href="#f-rise"/></svg><div><div class="v">07:58</div></div></div>
+              <div class="fact"><svg width="20" height="20"><use href="#f-set"/></svg><div><div class="v">18:41</div></div></div>
+              <div class="fact"><svg width="22" height="22"><use href="#f-wind"/></svg><div><div class="k">Wind</div><div class="v">6 m/s · gusts 12</div></div></div>
+              <div class="fact"><svg width="22" height="22"><use href="#f-drop"/></svg><div><div class="k">Humidity</div><div class="v">72%</div></div></div>
+              <div class="fact"><svg width="22" height="22"><use href="#f-air"/></svg><div><div class="k">Air</div><div class="v">Good · 18</div></div></div>
+              <div class="fact"><svg width="22" height="22"><use href="#f-uv"/></svg><div><div class="k">UV</div><div class="v">up to 3</div></div></div>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:10px;min-width:0;position:relative">
+            <div class="topline"><span class="place">Oslo</span><span class="when">Sat 11 Oct, <b>14:20</b></span></div>
+            <div class="days" data-days="7" data-style="multi"></div>
+            <svg class="chart" data-chart viewBox="0 0 320 96" role="img" aria-label="Next 24 hours"></svg>
+            <div class="keys"><span class="pill">Place <span class="kh">L</span></span><span class="pill">More <span class="kh">D</span></span><span class="pill">Settings <span class="kh">,</span></span></div>
+            <div class="foot" style="padding-right:96px"><span>Weather © MET Norway · Air © CAMS</span><span>14:12</span></div>
+          </div>
+          <svg class="peek"><use href="#nimbi"/></svg>
+        </div>
+      </div>
+      <ul class="pros">
+        <li class="good">Closest to the reference, and the same width as Skyline's open island (580), so at the notch the panel and the island line up.</li>
+        <li class="good">Room for everything without scrolling: the now card holds the facts, the right side holds seven days and the 24 h chart.</li>
+        <li class="good">Click a day (or ← →) and the left card shows that day: its high and low, condition, sun times and wind.</li>
+        <li class="bad">Twice DESIGN.md's list width (318). It hangs from a menu bar glyph, so on a small screen it covers more; 7 needs a "wide panel 600" line.</li>
+      </ul>
+    </div>
+
+    <div class="row2">
+      <div class="opt">
+        <div class="opt-head"><h3>B · One column, 318 wide</h3></div>
+        <div class="stage">
+          <div class="panel narrow" aria-label="Mockup B">
+            <div class="card hero" style="padding:12px 14px 14px">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                <div><div class="place" style="font-size:11.5px">Oslo</div><div class="when">Sat, <b>14:20</b></div></div>
+                <div style="text-align:right"><div class="temp" style="font-size:52px">18°</div><div class="hl" style="justify-content:flex-end;margin-top:4px"><span>H 19°</span><i></i><span>L 10°</span></div></div>
+              </div>
+              <div class="cond" style="font-size:24px">Partly cloudy</div>
+              <div class="facts">
+                <div class="fact"><svg width="18" height="18"><use href="#f-rise"/></svg><div class="v">07:58</div></div>
+                <div class="fact"><svg width="18" height="18"><use href="#f-set"/></svg><div class="v">18:41</div></div>
+                <div class="fact"><svg width="20" height="20"><use href="#f-wind"/></svg><div><div class="k">Wind</div><div class="v">6 m/s</div></div></div>
+                <div class="fact"><svg width="20" height="20"><use href="#f-drop"/></svg><div><div class="k">Humidity</div><div class="v">72%</div></div></div>
+              </div>
+            </div>
+            <div class="days" data-days="8" data-style="multi" style="grid-template-columns:repeat(4,1fr)"></div>
+            <svg class="chart" data-chart viewBox="0 0 290 96" role="img" aria-label="Next 24 hours"></svg>
+            <div class="keys"><span class="pill">Place <span class="kh">L</span></span><span class="pill">More <span class="kh">D</span></span><span style="flex:1"></span><span class="pill">Settings <span class="kh">,</span></span></div>
+            <div class="foot" style="padding-right:70px"><span>Weather © MET Norway</span><span>14:12</span></div>
+            <svg class="peek" style="width:120px;height:120px;right:-30px;bottom:-34px"><use href="#nimbi"/></svg>
+          </div>
+        </div>
+        <ul class="pros">
+          <li class="good">Keeps the menu panel width; the reference's left card sits on top, its day grid below.</li>
+          <li class="bad">Tall, about 620 pt, and the day cards are tight at 4 across.</li>
+          <li class="bad">Facts have room for four; air and UV move to the strip.</li>
+        </ul>
+      </div>
+
+      <div class="opt">
+        <div class="opt-head"><h3>C · Today's layout, new look</h3></div>
+        <div class="stage">
+          <div class="panel narrow" aria-label="Mockup C">
+            <div style="display:flex;align-items:flex-end;gap:10px">
+              <div style="flex:1;min-width:0"><div class="place" style="font-size:11.5px">Oslo · <span style="color:var(--dim);letter-spacing:0;text-transform:none;font-weight:500">Sat 14:20</span></div><div class="cond" style="font-size:22px;margin-top:4px">Partly cloudy</div></div>
+              <div style="text-align:right"><div class="temp" style="font-size:46px">18°</div><div class="hl" style="justify-content:flex-end"><span>H 19°</span><span>L 10°</span></div></div>
+            </div>
+            <div class="strip"><span class="chip">Feels 15°</span><span class="chip"><span class="dot" style="background:#30D158"></span>Air good</span><span class="chip">UV up to 3</span><span class="chip">Sunset 18:41</span></div>
+            <svg class="chart" data-chart viewBox="0 0 290 96" role="img" aria-label="Next 24 hours"></svg>
+            <div class="sec">7 days</div>
+            <div data-rows></div>
+            <div class="keys"><span class="pill">Place <span class="kh">L</span></span><span class="pill">More <span class="kh">D</span></span><span style="flex:1"></span><span class="pill">Settings <span class="kh">,</span></span></div>
+            <div class="foot" style="padding-right:70px"><span>Weather © MET Norway</span><span>14:12</span></div>
+            <svg class="peek" style="width:120px;height:120px;right:-30px;bottom:-34px"><use href="#nimbi"/></svg>
+          </div>
+        </div>
+        <ul class="pros">
+          <li class="good">Smallest change: the big type, colored symbols and the corner cloud on the layout you already use.</li>
+          <li class="bad">Least like the reference: no now card, no day cards.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="decision" aria-labelledby="d2">
+    <div class="dhead"><div class="eyebrow">Decisions 2–4</div><h2 id="d2">Symbols, the cloud, the temperature</h2><p>Also asked in the chat, recommended answer first.</p></div>
+    <div class="icons-compare">
+      <div class="box"><div class="eyebrow">2 · Weather symbols</div>
+        <div class="iconrow"><svg width="34" height="34"><use href="#i-sun"/></svg><svg width="34" height="34"><use href="#i-partly"/></svg><svg width="34" height="34"><use href="#i-rain"/></svg><svg width="34" height="34"><use href="#i-storm"/></svg></div>
+        <div style="font-size:13px;color:var(--strong)"><b>Multicolor SF Symbols</b> (recommended): sun yellow, rain blue, as macOS paints them.</div>
+        <div class="iconrow"><svg width="34" height="34"><use href="#m-sun"/></svg><svg width="34" height="34"><use href="#m-partly"/></svg><svg width="34" height="34"><use href="#m-rain"/></svg><svg width="34" height="34"><use href="#m-storm"/></svg></div>
+        <div style="font-size:13px;color:var(--dim)">Or white, as now. Quieter; color stays for state only.</div></div>
+      <div class="box"><div class="eyebrow">3 · The cloud</div>
+        <div class="iconrow" style="position:relative;overflow:hidden;height:110px;justify-content:flex-end;align-items:flex-end;padding:0"><svg width="130" height="130" style="margin:0 -30px -40px 0"><use href="#nimbi"/></svg></div>
+        <div style="font-size:13px;color:var(--strong)"><b>Peeking from the corner</b> (recommended): big, cropped by the panel, eyes on the cursor, mood as now. Replaces the small header cloud.</div>
+        <div style="font-size:13px;color:var(--dim)">Or keep the 40 pt cloud in the header.</div></div>
+      <div class="box"><div class="eyebrow">4 · The temperature</div>
+        <div class="temps-compare"><div class="temp" style="font-size:58px">18°</div><div class="temp sheen" style="font-size:58px">18°</div></div>
+        <div style="font-size:13px;color:var(--strong)"><b>Flat white</b> (left, recommended): DESIGN.md as it stands.</div>
+        <div style="font-size:13px;color:var(--dim)">Or a white-to-pale-sky sheen (right), like the reference. Needs a 4.4 exception: "one hero number per app may carry a sky sheen".</div></div>
+    </div>
+  </section>
+</div>
+
+<script>
+(() => {
+  const days = [['Today','partly',19,10],['Sun','sun',21,11],['Mon','rain',17,9],['Tue','partly',20,12],['Wed','storm',16,8],['Thu','cloud',15,9],['Fri','sun',18,8],['Sat','partly',19,10]];
+  document.querySelectorAll('[data-days]').forEach(el => {
+    const n = +el.dataset.days, pre = el.dataset.style === 'multi' ? 'i-' : 'm-';
+    el.innerHTML = days.slice(0, n).map(([d, s, h, l], i) =>
+      `<div class="dcard${i === 0 ? ' on' : ''}"><svg width="30" height="30"><use href="#${pre}${s}"/></svg><span class="n">${d}</span><span class="t">${h}°<br>${l}°</span></div>`).join('');
+  });
+  document.querySelectorAll('[data-rows]').forEach(el => {
+    el.innerHTML = days.slice(0, 7).map(([d, s, h, l]) =>
+      `<div class="dayrow"><span style="font-weight:500">${d}</span><svg width="20" height="20"><use href="#i-${s}"/></svg><span class="lo">${l}°</span><span class="track"><i style="left:${(l-8)/13*100}%;right:${(21-h)/13*100}%"></i></span><span>${h}°</span></div>`).join('');
+  });
+  const temps = [18,18,17,16,15,15,14,13,12,12,11,11,11,10,10,10,11,12,14,15,17,18,19,19];
+  const rain = [0,0,0,0,0,0,0,.4,1.2,.8,.3,0,0,0,0,0,0,0,0,0,0,0,0,0];
+  document.querySelectorAll('svg[data-chart]').forEach(svg => {
+    const W = +svg.getAttribute('viewBox').split(' ')[2], top = 14, base = 76, bw = W / 24, tMin = 8, tMax = 20;
+    const ty = t => top + (tMax - t) / (tMax - tMin) * 34;
+    let o = '';
+    for (const g of [0,6,12,18]) o += `<line x1="${g*bw+.5}" x2="${g*bw+.5}" y1="${top-6}" y2="${base}" stroke="rgba(255,255,255,.06)"/>`;
+    o += `<line x1="0" x2="${W}" y1="${base+.5}" y2="${base+.5}" stroke="rgba(255,255,255,.12)"/>`;
+    rain.forEach((r, i) => { if (r) { const h = r / 2 * 30; o += `<rect x="${i*bw+1.5}" y="${base-h}" width="${bw-3}" height="${h}" rx="1.5" fill="#7FD0FF" fill-opacity=".85"/>`; } });
+    const p = temps.map((t, i) => [i*bw+bw/2, ty(t)]);
+    o += `<path d="M${p.map(q => q.map(v => v.toFixed(1)).join(' ')).join(' L')}" fill="none" stroke="rgba(255,255,255,.88)" stroke-width="1.6" stroke-linejoin="round"/>`;
+    o += `<circle cx="${p[0][0]}" cy="${p[0][1]}" r="3" fill="#fff"/>`;
+    [['Now',0],['20',6],['02',12],['08',18]].forEach(([l,g]) => o += `<text x="${g*bw+(g?0:1)}" y="${base+12}" fill="rgba(255,255,255,.42)" font-size="9" ${g?'text-anchor="middle"':''}>${l}</text>`);
+    svg.innerHTML = o;
+  });
+})();
+</script>

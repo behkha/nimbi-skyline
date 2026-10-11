@@ -44,6 +44,19 @@ Options in the private artifact <https://claude.ai/artifact/WMqNogkLmHXxqRS2wgBG
 
 Sunrise and sunset are always there, worked out locally.
 
+## Redesign: the two-pane dropdown (11 Oct 2026)
+
+Inspired by a two-pane weather card the user shared. Options in the private artifact
+<https://claude.ai/artifact/X94dzvnRhTuK6nPZSaQ8wQ> (copy in `docs/redesign-options.html`); all four
+recommended options chosen.
+
+| Decision | Chosen |
+|---|---|
+| Layout | **A · Two panes, 600 wide.** Left, the now card: big temperature, high/low (and feels like), the condition in big capitals, sunrise and sunset, facts (what matters, or all with D). Right: place in caps with the date and time, seven day cards (click or ← → to show a day in the now card; esc goes back to now), the 24 h skyline chart, keys and credits. It replaces the strip and grid layout of "Air, sun and UV". |
+| Symbols | **Multicolor SF Symbols**, filled variants (sun yellow, rain blue). |
+| The cloud | **Peeking from the bottom-right corner**, big and cropped, in its mood, eyes on the cursor. Replaces the header cloud. |
+| Temperature | **Flat white.** No gradient on text. |
+
 ## Mood mapping
 
 See the Moods section of the [README](../README.md#moods).

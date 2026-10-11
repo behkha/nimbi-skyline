@@ -33,13 +33,22 @@ public struct SkyReport: Equatable, Sendable {
         public var precipitation: Double
         /// The most notable weather of the daytime hours.
         public var symbol: WeatherSymbol?
+        /// The strongest mean wind and gust, m/s.
+        public var wind: Double? = nil
+        public var gust: Double? = nil
+        /// Mean relative humidity, %.
+        public var humidity: Double? = nil
+        /// The highest chance of rain in any period, %.
+        public var precipitationChance: Double? = nil
+        /// The highest clear-sky UV index.
+        public var uv: Double? = nil
     }
 
     public var current: ForecastStep
     public var rain: Rain
     /// Within the next `hazardHorizon`, soonest first.
     public var hazards: [Hazard]
-    /// Up to five days, today first.
+    /// Up to `dayCount` days (five by default), today first.
     public var days: [Day]
     public var isNight: Bool
 
@@ -120,8 +129,13 @@ public struct SkyReport: Equatable, Sendable {
                 return hour >= 6 && hour < 20
             }
             let symbol = (daytime.isEmpty ? inDay : daytime).compactMap(\.symbol).max { $0.severity < $1.severity }
+            let humidity = inDay.compactMap(\.humidity)
             result.append(Day(date: start, low: temps.min()!, high: temps.max()!,
-                              precipitation: (precipitation * 10).rounded() / 10, symbol: symbol))
+                              precipitation: (precipitation * 10).rounded() / 10, symbol: symbol,
+                              wind: inDay.compactMap(\.windSpeed).max(), gust: inDay.compactMap(\.windGust).max(),
+                              humidity: humidity.isEmpty ? nil : humidity.reduce(0, +) / Double(humidity.count),
+                              precipitationChance: inDay.compactMap(\.precipitationChance).max(),
+                              uv: inDay.compactMap(\.uvClearSky).max()))
         }
         return result
     }

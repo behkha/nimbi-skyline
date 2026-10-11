@@ -26,6 +26,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         item.onClick = { [weak self] in self?.dropdown.toggle() }
         item.menu = { [weak self] in self?.shortMenu() ?? NSMenu() }
         model.start()
+        if Demo.sky != nil, ProcessInfo.processInfo.environment["SKYLINE_DEMO_SHOW"] == "1" {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in self?.dropdown.showForCapture() }
+        }
     }
 
     /// Right-click: the few things worth reaching without opening the dropdown.

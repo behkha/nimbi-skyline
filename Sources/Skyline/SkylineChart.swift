@@ -7,6 +7,7 @@ import SwiftUI
 struct SkylineChart: View {
     var outlook: HourlyOutlook
     var timeZone: TimeZone
+    var height: CGFloat = 112
     @ObservedObject private var look = NimbiAppearance.shared
 
     /// Slots on the axis. Always 24, so an hour is the same width whatever the data covers.
@@ -15,7 +16,7 @@ struct SkylineChart: View {
     var body: some View {
         let summary = outlook.summary(timeZone: timeZone)
         Canvas { context, size in draw(in: &context, size: size) }
-            .frame(height: 112 * look.textScale)
+            .frame(height: height * look.textScale)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(summary)
             .accessibilityAddTraits(.isImage)

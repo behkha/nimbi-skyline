@@ -102,7 +102,8 @@ public struct Conditions: Equatable, Sendable {
                                   spoken: "\(Int(chance.rounded())) percent chance of thunder", tone: .warn))
             }
             tiles.append(Tile(id: "thunder", label: "Thunder", value: "\(Int(chance.rounded()))%",
-                              meaning: "most at \(clock.string(from: step.time))", tone: chance >= 20 ? .warn : .plain))
+                              meaning: step.time <= now ? "most likely now" : "most at \(clock.string(from: step.time))",
+                              tone: chance >= 20 ? .warn : .plain))
         }
         if let fog = now0.fog, fog >= 1 {
             if fog >= 50 { chips.append(Chip(id: "fog", text: "Fog", spoken: "Fog")) }
@@ -138,7 +139,7 @@ public struct Conditions: Equatable, Sendable {
                 note.append("UV up to \(Int(peak.rounded()))")
             }
             tiles.append(Tile(id: "uv", label: "UV", value: "\(Int(uvNow.rounded()))",
-                              meaning: "peak \(Int(peak.rounded())) at \(clock.string(from: peakStep.time))",
+                              meaning: peakStep.time <= now ? "at its peak" : "peak \(Int(peak.rounded())) at \(clock.string(from: peakStep.time))",
                               tone: strong ? .warn : .plain, meter: min(1, peak / 11)))
             if strong { urgency = max(urgency, .notice) }
         }
