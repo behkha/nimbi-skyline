@@ -5,8 +5,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/behkha/nimbi-kit.git",
       "state" : {
-        "revision" : "04a5d52943ee9593b02b92e10f82a4c5b05f4da1",
-        "version" : "0.7.0"
+        "revision" : "d987f4535d4b665d277dec92031a8244f13b6b65",
+        "version" : "0.7.1"
       }
     }
   ],
