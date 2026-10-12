@@ -10,6 +10,7 @@ import SwiftUI
 @MainActor
 final class SkylineIsland {
     let island: NotchIsland
+    private var bag: Set<AnyCancellable> = []
 
     /// Forecast ↩ and Place L: open Skyline's dropdown hanging from the island.
     var onOpenPanel: ((PanelState.Page) -> Void)?
@@ -28,6 +29,13 @@ final class SkylineIsland {
             default: return false
             }
         }
+        // The other apps' islands show Skyline's dot amber while a hazard needs you.
+        model.objectWillChange.receive(on: RunLoop.main).sink { [weak self, weak model] _ in
+            DispatchQueue.main.async {
+                guard let self, let model else { return }
+                self.island.setNeedsYou(model.urgency == .needsYou)
+            }
+        }.store(in: &bag)
     }
 }
 
@@ -92,6 +100,7 @@ private struct OpenPage: View {
             NimbiCloud(size: 92, mood: model.mood.mood, working: model.mood.working,
                        weather: model.report?.cloudWeather ?? .none)
                 .frame(width: 92, height: 92)
+                .islandDrift(.cloud)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 Text("SKYLINE")
@@ -118,9 +127,11 @@ private struct OpenPage: View {
                 }
                 .padding(.top, 6)
             }
+            .islandDrift(.text)
             Spacer(minLength: 0)
             IslandBars(bars: page.bars, summary: model.outlook.summary(timeZone: model.timeZone))
                 .frame(width: 132)
+                .islandDrift(.text)
         }
         .padding(.horizontal, 28)
         .padding(.bottom, 10)

@@ -64,6 +64,10 @@ CC BY 4.0.
   the temperature on a dry day) with **Forecast ↩** and **Place L**. The dropdown then hangs from the
   island, and the menu bar glyph steps aside. **Give it to Relay** hands it back; Relay's pill waits
   at the right edge meanwhile. Either app's switch works live.
+- **Swiping between apps:** every nimbi app keeps its own island, and a two-finger swipe, a drag, or
+  ← → on the open island moves the notch to the next running app (Relay, Skyline, Tempo), whose
+  island opens with its page drifting in. ⌃⌥← and ⌃⌥→ do it from anywhere, and dots show where you
+  are (DESIGN.md 18.2a). Relay's notch is unchanged; a swipe over it works too.
 
 ## Moods
 

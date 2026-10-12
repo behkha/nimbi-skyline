@@ -71,6 +71,13 @@ Options in the private artifact <https://claude.ai/artifact/SFcBihmh39TxFwCu3kmn
 | Menu bar glyph | **Stays the cloud**, with drizzle marks and the amber dot as before. |
 | Where | **NimbiKit**, `NimbiCloud(weather:)` with `CloudWeather` (0.4.0). Skyline maps the sky onto it in `SkyReport.cloudWeather`: thunder, then what's falling now, heat by day, fog, wind, then the sky (sun, partly cloudy, moon). A picked day shows its own weather. |
 
+## Swiping between apps (12 Oct 2026)
+
+Every app keeps its own island; a swipe moves the notch to the next running app (DESIGN.md 18.2a,
+NimbiKit 0.7.0). Skyline's page marks its cloud and text with `.islandDrift`, and tells the other
+islands when a hazard needs you, so its dot glows amber there. Prototype and choices: Tempo's
+`docs/design-choices.md`.
+
 ## Mood mapping
 
 See the Moods section of the [README](../README.md#moods).
