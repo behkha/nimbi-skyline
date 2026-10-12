@@ -3,76 +3,12 @@ import NimbiKit
 import SkylineCore
 import SwiftUI
 
-/// Who draws at the notch (DESIGN.md 18.2, phase 1). Skyline never claims it on its own: the
-/// first nimbi app installed (Relay) has it by default. The user can hand it to Skyline here with
-/// one click, and back again; every nimbi app hears the claim and moves at once.
-@MainActor
-final class NotchWatch: ObservableObject {
-    @Published private(set) var owner: String?
-    private var observation: SurfaceClaim.Observation?
-    private let claim = SurfaceClaim(surface: .notch, bundleID: Bundle.main.bundleIdentifier ?? "app.nimbi.skyline")
-    /// Who had the notch before Skyline took it, to give it back to.
-    private static let previousKey = "NotchPreviousOwner"
-
-    init() {
-        owner = SurfaceClaim.owner(of: .notch)
-        observation = SurfaceClaim.observe { [weak self] claim in
-            guard claim.surface == .notch else { return }
-            self?.reread()
-        }
-    }
-
-    func reread() {
-        let now = SurfaceClaim.owner(of: .notch)
-        if now != owner { owner = now }
-    }
-
-    var ownedBySkyline: Bool { owner == claim.bundleID }
-
-    /// The app Skyline would give the notch back to.
-    var previous: String? {
-        UserDefaults.standard.string(forKey: Self.previousKey).flatMap { $0 == claim.bundleID ? nil : $0 }
-    }
-
-    /// The one-click switch: Skyline draws at the notch from now on.
-    func take() {
-        if let owner, owner != claim.bundleID { UserDefaults.standard.set(owner, forKey: Self.previousKey) }
-        claim.take()
-        reread()
-    }
-
-    /// Back to whoever had it (Relay, usually), or to nobody, so the next nimbi app that wants it takes it.
-    func giveBack() {
-        SurfaceClaim.setOwner(previous, of: .notch)
-        claim.post()
-        reread()
-    }
-
-    /// "Notch is used by Relay", in words people know.
-    var line: String {
-        guard let owner else { return "Notch is free." }
-        if ownedBySkyline { return "Skyline is in the notch." }
-        return "Notch is used by \(Self.appName(owner))"
-    }
-
-    static func appName(_ bundleID: String) -> String {
-        if let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: bundleID),
-           let bundle = Bundle(url: url),
-           let name = bundle.object(forInfoDictionaryKey: "CFBundleDisplayName") as? String
-            ?? bundle.object(forInfoDictionaryKey: "CFBundleName") as? String {
-            return name
-        }
-        let last = bundleID.split(separator: ".").last.map(String.init) ?? bundleID
-        return last.prefix(1).uppercased() + last.dropFirst()
-    }
-}
-
 /// `,`: the settings menu (DESIGN.md 8): header, grouped rows in a well, then plain rows.
 struct SettingsView: View {
     @ObservedObject var location: LocationService
     @ObservedObject var model: SkyModel
     @ObservedObject var panel: PanelState
-    @ObservedObject var notch: NotchWatch
+    @ObservedObject var notch: NotchOwnership
     var actions: PanelActions
     @ObservedObject private var look = NimbiAppearance.shared
 
@@ -127,13 +63,13 @@ struct SettingsView: View {
                 }
                 .font(look.font(12))
                 HStack(spacing: 8) {
-                    Text(notch.ownedBySkyline ? "Hover it for the next 12 hours." : "Skyline stays in the menu bar.")
+                    Text(notch.ownedByMe ? "Hover it for the next 12 hours." : "Skyline stays in the menu bar.")
                         .font(look.font(10.5))
                         .foregroundStyle(Nimbi.Text.dim)
                         .fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: 4)
-                    if notch.ownedBySkyline {
-                        Button(notch.previous.map { "Give it to \(NotchWatch.appName($0))" } ?? "Let it go") { notch.giveBack() }
+                    if notch.ownedByMe {
+                        Button(notch.giveBackTitle) { notch.giveBack() }
                             .buttonStyle(PillButtonStyle())
                             .focusable(false)
                     } else {

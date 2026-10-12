@@ -29,6 +29,9 @@ Both open questions were answered with the recommended option, and both are now 
   page, so no dots or swiping) and Relay's pill waits at the right edge. Two departures from 18.7:
   the closed island's wings are 60 pt, not 76, because the closed island hides the menu bar items
   under it; and the open island is the notch plus 160 pt (about 200), not 222, because one page needs no dots.
+- **Shared since 12 Oct 2026.** When Tempo became the second app with an island, the window, hover timing,
+  keys, panel hanging and the notch switch moved into NimbiKit 0.6.0 (`NotchOwnership`, `NotchIsland`,
+  `IslandWings`). Skyline keeps only its page: the wings' content, the open page and the bars.
 
 ## Air, sun and UV (11 Oct 2026)
 

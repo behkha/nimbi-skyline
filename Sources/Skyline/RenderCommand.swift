@@ -23,7 +23,7 @@ enum RenderCommand {
         func shot(_ name: String, _ setup: () -> Void) {
             setup()
             let view = DropdownRoot(state: state, model: model, location: model.location,
-                                    search: PlaceSearch(location: model.location), notch: NotchWatch(), actions: actions)
+                                    search: PlaceSearch(location: model.location), notch: NotchOwnership(appName: "Skyline"), actions: actions)
             let renderer = ImageRenderer(content: view)
             renderer.scale = 2
             guard let image = renderer.nsImage, let tiff = image.tiffRepresentation,

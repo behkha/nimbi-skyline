@@ -60,15 +60,15 @@ final class Dropdown: NSObject, NSWindowDelegate {
     private let model: SkyModel
     private let item: MenuBarItem
     private let search: PlaceSearch
-    private let notch: NotchWatch
+    private let notch: NotchOwnership
     /// Set when Skyline owns the notch; the dropdown can then hang from the island.
-    weak var island: IslandController?
+    weak var island: NotchIsland?
     private var host: SizeReportingHostingView<AnyView>!
     private var keyMonitor: Any?
     private var closedAt = Date.distantPast
     var onAbout: (() -> Void)?
 
-    init(model: SkyModel, item: MenuBarItem, notch: NotchWatch) {
+    init(model: SkyModel, item: MenuBarItem, notch: NotchOwnership) {
         self.model = model
         self.item = item
         self.notch = notch
@@ -260,7 +260,7 @@ struct DropdownRoot: View {
     var model: SkyModel
     var location: LocationService
     var search: PlaceSearch
-    var notch: NotchWatch
+    var notch: NotchOwnership
     var actions: PanelActions
     @ObservedObject private var look = NimbiAppearance.shared
 

@@ -1,4 +1,5 @@
 import AppKit
+import NimbiKit
 import SkylineCore
 
 /// Wires the pieces: the sky model, the menu bar glyph, the notch island (when Skyline owns the
@@ -9,19 +10,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var item: MenuBarItem!
     private var dropdown: Dropdown!
     private let about = AboutWindow()
-    private var notch: NotchWatch!
-    private var island: IslandController!
+    private var notch: NotchOwnership!
+    private var island: SkylineIsland!
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         LookSettings.load()
-        notch = NotchWatch()
+        notch = NotchOwnership(appName: "Skyline")
         item = MenuBarItem(model: model)
         dropdown = Dropdown(model: model, item: item, notch: notch)
-        island = IslandController(model: model, notch: notch)
+        island = SkylineIsland(model: model, ownership: notch)
         island.onOpenPanel = { [weak self] page in self?.dropdown.openFromIsland(page) }
         // One Skyline on screen at a time: the island replaces the menu bar glyph while it's shown.
-        island.onShown = { [weak self] shown in self?.item.statusItem.isVisible = !shown }
-        dropdown.island = island
+        island.island.onShown = { [weak self] shown in self?.item.statusItem.isVisible = !shown }
+        dropdown.island = island.island
         dropdown.onAbout = { [weak self] in self?.about.show() }
         item.onClick = { [weak self] in self?.dropdown.toggle() }
         item.menu = { [weak self] in self?.shortMenu() ?? NSMenu() }
